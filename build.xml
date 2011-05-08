@@ -52,7 +52,7 @@ limitations under the License.
 	<target name="javadoc">
 		<delete dir="${dir.javadoc}" />
 		<mkdir dir="${dir.javadoc}" />
-		<javadoc sourcepath="${dir.src}" destdir="${dir.javadoc}" author="true" 
+		<javadoc sourcepath="${dir.src}" classpathref="classpath" destdir="${dir.javadoc}" author="true" 
 			windowtitle="common-parser-lib v${version.major}.${version.minor} - The Buzz Media Common Parser Library" 
 			footer="Copyright 2011 The Buzz Media, LLC"	linksource="true" package="true" 
 			source="1.5" use="true">
