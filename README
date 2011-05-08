@@ -1,0 +1,72 @@
+The Buzz Media common-parser-lib
+http://www.thebuzzmedia.com/software/common-parser-lib-common-parser-java-utility-library/
+
+
+Changelog
+---------
+1.1
+	* Initial public release.
+
+
+License
+-------
+This library is released under the Apache 2 License. See LICENSE.
+
+
+Description
+-----------
+A collection of simple, high-performance, low-overhead classes intended for 
+parsing primitive array-based content (byte[] and char[] support provided).
+
+Successfully parsing any data is done by lexing that data into meaningful tokens
+that provide structure to the document; a parser then processes the tokens.
+
+The IToken and ITokenizer implementations form the basis of this library, 
+providing simple and fast mechanisms to pull tokens from a byte[] or char[] 
+stream based on a list of delimiters that can be matched exactly or just matched
+to any.
+
+A common use-case for "match any" delimiters would be any whitespace characters 
+that are separating values in a file you want, so tokenizing that file content
+by matching any whitespace char will give you all the values that are not 
+whitespace.
+
+A common use-case for "match all" delimiters would be specifying a prefix you
+are looking for, like "-->" would give you all the content between that delimiter
+and the next occurrence of it.
+
+This library is not meant to replace full-scale language parsers, but is meant
+as a way to lex simple data as fast as possible without relying on the much-slower
+StringTokenizer class from the JDK.
+
+
+Production Use
+--------------
+This library is currently used in production in a multitude of The Buzz Media
+open source and commercial products.
+
+
+Runtime Requirements
+--------------------
+The Buzz Media common-lib: tbm-common-lib-<VER>.jar
+
+
+History
+-------
+While developing the CloudFront Log Parser and Redis Client Driver, I saw
+a lot of duplication of parsing logic.
+
+Analyzing the two use-cases, pulling out the best features of both, tightening
+up the spec to make the library faster and use as little memory as possible and
+then generalizing the functionality, I arrived at this library.
+
+For both those projects I needed a really fast lexer/tokenizer that could work
+on primitive array types with as little overhead as possible which is what lead
+me to a few different lexer implementations before normalizing them all into
+this cleaner API.
+
+
+Contact
+-------
+If you have questions, comments or bug reports for this software please contact
+us at: software@thebuzzmedia.com
