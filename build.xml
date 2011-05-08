@@ -74,9 +74,13 @@ limitations under the License.
 	<target name="dist" depends="compile,javadoc,jar,src">
 		<copy file="README" todir="${dir.dist}" />
 		<copy file="LICENSE" todir="${dir.dist}" />
-		<copydir src="${dir.lib}" dest="${dir.dist}/${dir.lib}" />
-		<copydir src="${dir.docs}" dest="${dir.dist}/${dir.docs}" />
-		
+		<copy todir="${dir.dist}/${dir.lib}">
+			<fileset dir="${dir.lib}" />
+		</copy>
+		<copy todir="${dir.dist}/${dir.docs}">
+			<fileset dir="${dir.docs}" />
+		</copy>
+			
 		<jar compress="yes" basedir="${dir.javadoc}" destfile="${dir.dist}/${name.file.javadoc}" />
 		<zip compress="yes" basedir="${dir.dist}" destfile="${dir.dist}/${name.file}-${version.major}.${version.minor}.zip" />
 	</target>
