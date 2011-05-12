@@ -13,31 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.thebuzzmedia.common.lexer;
+package com.thebuzzmedia.common.scanner;
 
-import com.thebuzzmedia.common.AbstractToken;
+import java.util.List;
 
-public class ByteArrayToken extends AbstractToken<byte[]> {
-	public static final byte[] EMPTY_VALUE = new byte[0];
+import com.thebuzzmedia.common.IToken;
 
-	public ByteArrayToken() {
-		// default constructor
-	}
-	
-	public ByteArrayToken(byte[] source, int index, int length)
-			throws IllegalArgumentException {
-		super(source, index, length);
-	}
+public interface IScanner<T> {
+	public List<IToken<T>> scan(T source, int index, int length)
+			throws IllegalArgumentException;
 
-	public byte[] getValue() {
-		byte[] value = null;
-
-		if (length > 0) {
-			value = new byte[length];
-			System.arraycopy(source, index, value, 0, length);
-		} else
-			value = EMPTY_VALUE;
-
-		return value;
-	}
+	public List<IToken<T>> scan(T source, int index, int length,
+			List<IToken<T>> existingTokenList) throws IllegalArgumentException;
 }

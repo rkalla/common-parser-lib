@@ -13,31 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.thebuzzmedia.common.lexer;
+package com.thebuzzmedia.common.parser;
 
-import com.thebuzzmedia.common.AbstractToken;
+import com.thebuzzmedia.common.IToken;
 
-public class ByteArrayToken extends AbstractToken<byte[]> {
-	public static final byte[] EMPTY_VALUE = new byte[0];
-
-	public ByteArrayToken() {
-		// default constructor
-	}
-	
-	public ByteArrayToken(byte[] source, int index, int length)
-			throws IllegalArgumentException {
-		super(source, index, length);
-	}
-
-	public byte[] getValue() {
-		byte[] value = null;
-
-		if (length > 0) {
-			value = new byte[length];
-			System.arraycopy(source, index, value, 0, length);
-		} else
-			value = EMPTY_VALUE;
-
-		return value;
-	}
+/**
+ * 
+ * @author Riyad Kalla (software@thebuzzmedia.com)
+ * 
+ * @param <IT>
+ *            The type of the input source processed by the parser.
+ * @param <T>
+ *            The type of the <code>source</code> the token is used to describe.
+ */
+public interface IParserCallback<IT, T> {
+	public void tokenParsed(IToken<T> token, IParser<IT, T> parser);
 }

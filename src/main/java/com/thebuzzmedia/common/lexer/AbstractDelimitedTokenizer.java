@@ -15,35 +15,29 @@
  */
 package com.thebuzzmedia.common.lexer;
 
-public abstract class AbstractToken<T> implements IToken<T> {
-	protected T source;
+public abstract class AbstractDelimitedTokenizer<T, DT> extends
+		AbstractTokenizer<T> implements IDelimitedTokenizer<T, DT> {
+	protected DT delimiters;
+	protected DelimiterMode mode;
 
-	protected int index;
-	protected int length;
+	public void reset() {
+		super.reset();
 
-	public AbstractToken(T source, int index, int length)
+		delimiters = null;
+		mode = null;
+	}
+
+	public DT getDelimiters() {
+		return delimiters;
+	}
+
+	public DelimiterMode getDelimiterMode() {
+		return mode;
+	}
+
+	public void setSource(T source, int index, int length)
 			throws IllegalArgumentException {
-		if (source == null)
-			throw new IllegalArgumentException("source cannot be null");
-		if (index < 0 || length < 0)
-			throw new IllegalArgumentException("index [" + index
-					+ "] and length [" + length + "] must be >= 0");
-
-		this.source = source;
-
-		this.index = index;
-		this.length = length;
-	}
-
-	public T getSource() {
-		return source;
-	}
-
-	public int getIndex() {
-		return index;
-	}
-
-	public int getLength() {
-		return length;
+		throw new UnsupportedOperationException(
+				"setSource(T, int, int) is unsupported for ISimpleTokenizer instances. Please use the setSource(T, int, int, DT, DelimiterMode) method instead.");
 	}
 }

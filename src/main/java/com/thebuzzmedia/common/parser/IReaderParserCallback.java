@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.thebuzzmedia.common.lexer;
+package com.thebuzzmedia.common.parser;
 
-public interface IToken<T> {
-	public T getValue();
+import java.io.Reader;
 
-	public T getSource();
+import com.thebuzzmedia.common.IToken;
 
-	public int getIndex();
-
-	public int getLength();
+public interface IReaderParserCallback extends IParserCallback<Reader, char[]> {
+	public void tokenParsed(IToken<char[]> token, IParser<Reader, char[]> parser);
 }

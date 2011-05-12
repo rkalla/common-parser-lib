@@ -15,32 +15,23 @@
  */
 package com.thebuzzmedia.common.lexer;
 
-public interface ITokenizer<T> {
-	public enum DelimiterType {
-		MATCH_ANY, MATCH_EXACT;
-	}
+import com.thebuzzmedia.common.IToken;
 
+public interface ITokenizer<T> {
 	public void reset();
+
+	public T getSource();
 
 	public int getIndex();
 
 	public int getLength();
 
-	public T getSource();
+	public boolean isReusingToken();
 
-	public T getDelimiters();
+	public void setReuseToken(boolean reuseToken);
 
-	public DelimiterType getDelimiterType();
-
-	public boolean hasMoreTokens();
-
-	public IToken<T> nextToken() throws IllegalStateException;
-
-	public int[] nextTokenBounds() throws IllegalStateException;
-
-	public void setSource(T source, T delimiters, DelimiterType type, int index)
+	public void setSource(T source, int index, int length)
 			throws IllegalArgumentException;
 
-	public void setSource(T source, T delimiters, DelimiterType type,
-			int index, int length) throws IllegalArgumentException;
+	public IToken<T> nextToken() throws IllegalStateException;
 }

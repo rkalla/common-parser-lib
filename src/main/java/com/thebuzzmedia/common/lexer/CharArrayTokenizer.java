@@ -15,9 +15,12 @@
  */
 package com.thebuzzmedia.common.lexer;
 
+import com.thebuzzmedia.common.IToken;
 import com.thebuzzmedia.common.util.ArrayUtils;
 
-public class CharArrayTokenizer extends AbstractTokenizer<char[]> {
+public class CharArrayTokenizer extends AbstractDelimitedTokenizer<char[], char[]> {
+	private ReusableCharArrayToken reusableToken = new ReusableCharArrayToken();
+
 	/*
 	 * No constructors are specified to help encourage re-use of Tokenizer
 	 * instances. With no constructors present, callers are forced to learn
@@ -34,29 +37,21 @@ public class CharArrayTokenizer extends AbstractTokenizer<char[]> {
 	 * Javadocs/Source to see why there isn't one and then understand setSource
 	 * is meant to be used over and over.
 	 */
-
-	public void setSource(char[] source, char[] delimiters, DelimiterType type,
-			int index) throws IllegalArgumentException {
-		if (source == null)
-			throw new IllegalArgumentException("source cannot be null");
-
-		setSource(source, delimiters, type, index, source.length - index);
-	}
-
-	public void setSource(char[] source, char[] delimiters, DelimiterType type,
-			int index, int length) throws IllegalArgumentException {
-		if (source == null || delimiters == null || type == null)
+	public void setSource(char[] source, int index, int length,
+			char[] delimiters, DelimiterMode mode)
+			throws IllegalArgumentException {
+		if (source == null || delimiters == null || mode == null)
 			throw new IllegalArgumentException(
-					"source, delimiters and type cannot be null.");
+					"source, delimiters and mode cannot be null.");
 		if (index < 0 || length <= 0 || (index + length) > source.length)
 			throw new IllegalArgumentException("index [" + index
 					+ "] must be >= 0, length [" + length
 					+ "] must be > 0 and (index + length) [" + (index + length)
 					+ "] must be <= source.length [" + source.length + "]");
-		if (type == DelimiterType.MATCH_EXACT
+		if (mode == DelimiterMode.MATCH_EXACT
 				&& source.length < delimiters.length)
 			throw new IllegalArgumentException(
-					"type specifies DelimiterType.MATCH_EXACT, but source.length ["
+					"mode specifies DelimiterMode.MATCH_EXACT, but source.length ["
 							+ source.length
 							+ "] is < delimiters.length ["
 							+ delimiters.length
@@ -74,100 +69,63 @@ public class CharArrayTokenizer extends AbstractTokenizer<char[]> {
 
 		this.source = source;
 		this.delimiters = delimiters;
-		this.type = type;
+		this.mode = mode;
 	}
 
-	public IToken<char[]> nextToken() throws IllegalStateException {
-		if (source == null)
-			throw new IllegalStateException(
-					"Tokenizer has no data to process; setSource(...) must be called to prepare this tokenizer for work.");
-
-		IToken<char[]> token = null;
-
-		// Skip processing if we already exhausted the source data.
-		if (moreTokens) {
-			// Mark the next token.
-			nextTokenBounds();
-
-			// Double check that we didn't just exhaust the source data.
-			if (moreTokens)
-				token = new CharArrayToken(source, tsIndex, (teIndex - tsIndex));
-		}
+	protected void nextTokenBounds() {
+		// On first call, start at index, otherwise start at teIndex.
+		tsIndex = (teIndex == ArrayUtils.INVALID_INDEX ? index : teIndex);
 
 		/*
-		 * Return null to the caller if there were no tokens to parse; this
-		 * makes for easy loop-logic to check when the tokenizer is exhausted
-		 * without needing to use try-catch blocks for NoSuchElementExceptions.
-		 * 
-		 * nextTokenBounds() follows the same contract.
+		 * Scan for start/end indices using different methods based on the
+		 * delimiter matching mode.
 		 */
+		switch (mode) {
+		case MATCH_ANY:
+			// Scan forward (match any) to first non-delimiter value.
+			tsIndex = ArrayUtils.indexAfterAnyNoCheck(delimiters, source,
+					tsIndex, length - tsIndex + index);
+
+			// Scan from tsIndex to first (any) delimiter value.
+			teIndex = ArrayUtils.indexOfAnyNoCheck(delimiters, source, tsIndex,
+					length - tsIndex + index);
+			break;
+
+		case MATCH_EXACT:
+			// Scan forward (match all) to first non-delimiter value.
+			tsIndex = ArrayUtils.indexAfterNoCheck(delimiters, source, tsIndex,
+					length - tsIndex + index);
+
+			// Scan from tsIndex to first (match all) delimiter values.
+			teIndex = ArrayUtils.indexOfNoCheck(delimiters, source, tsIndex,
+					length - tsIndex + index);
+			break;
+		}
+
+		// Check if we have exhausted our data source
+		if (teIndex == ArrayUtils.INVALID_INDEX || tsIndex >= endIndex
+				|| teIndex >= endIndex)
+			moreTokens = false;
+	}
+
+	@Override
+	protected IToken<char[]> createToken(char[] source, int index, int length)
+			throws IllegalArgumentException {
+		IToken<char[]> token;
+
+		if (reuseToken) {
+			reusableToken.setValues(source, index, length);
+			token = reusableToken;
+		} else
+			token = new CharArrayToken(source, index, length);
+
 		return token;
 	}
 
-	public int[] nextTokenBounds() throws IllegalStateException {
-		if (source == null)
-			throw new IllegalStateException(
-					"Tokenizer has no data to process; setSource(...) must be called to prepare this tokenizer for work.");
-
-		// Reset our int[] bounds array
-		tBounds[0] = ArrayUtils.INVALID_INDEX;
-		tBounds[1] = ArrayUtils.INVALID_INDEX;
-
-		// Skip processing if we already exhausted the source data.
-		if (moreTokens) {
-			// On first call, start at index, otherwise start at teIndex.
-			tsIndex = (teIndex == ArrayUtils.INVALID_INDEX ? index : teIndex);
-
-			/*
-			 * Scan for start/end indices using different methods based on the
-			 * delimiters matching type.
-			 */
-			switch (type) {
-			case MATCH_ANY:
-				// Scan forward (match any) to first non-delimiter value.
-				tsIndex = ArrayUtils.indexAfterAnyNoCheck(delimiters, source,
-						tsIndex, length - tsIndex + index);
-
-				// Scan from tsIndex to first (any) delimiter value.
-				teIndex = ArrayUtils.indexOfAnyNoCheck(delimiters, source,
-						tsIndex, length - tsIndex + index);
-				break;
-
-			case MATCH_EXACT:
-				// Scan forward (match all) to first non-delimiter value.
-				tsIndex = ArrayUtils.indexAfterNoCheck(delimiters, source,
-						tsIndex, length - tsIndex + index);
-
-				// Scan from tsIndex to first (all) delimiter values.
-				teIndex = ArrayUtils.indexOfNoCheck(delimiters, source,
-						tsIndex, length - tsIndex + index);
-				break;
-			}
-
-			// Check if we have exhausted our data source
-			if (teIndex == ArrayUtils.INVALID_INDEX || tsIndex >= endIndex
-					|| teIndex >= endIndex)
-				moreTokens = false;
-			else {
-				/*
-				 * Set the bounds values (index and length). length is not
-				 * calculated by adding +1 to the value because teIndex is
-				 * pointing at the beginning of the delims, which is already +1
-				 * index beyond the last index of the token.
-				 */
-				tBounds[0] = tsIndex;
-				tBounds[1] = (teIndex - tsIndex);
-			}
-
-			return tBounds;
-		} else {
-			/*
-			 * In order to match the contract of
-			 * "return null when we have no data" that nextToken defines, we
-			 * don't even return invalid bounds to the caller. That way their
-			 * logic of checking for null can stay consistent.
-			 */
-			return null;
+	class ReusableCharArrayToken extends CharArrayToken {
+		public void setValues(char[] source, int index, int length)
+				throws IllegalArgumentException {
+			super.setValues(source, index, length);
 		}
 	}
 }

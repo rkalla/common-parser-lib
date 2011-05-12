@@ -15,29 +15,15 @@
  */
 package com.thebuzzmedia.common.lexer;
 
-import com.thebuzzmedia.common.AbstractToken;
-
-public class ByteArrayToken extends AbstractToken<byte[]> {
-	public static final byte[] EMPTY_VALUE = new byte[0];
-
-	public ByteArrayToken() {
-		// default constructor
-	}
-	
-	public ByteArrayToken(byte[] source, int index, int length)
-			throws IllegalArgumentException {
-		super(source, index, length);
+public interface IDelimitedTokenizer<T, DT> extends ITokenizer<T> {
+	public enum DelimiterMode {
+		MATCH_ANY, MATCH_EXACT;
 	}
 
-	public byte[] getValue() {
-		byte[] value = null;
+	public DT getDelimiters();
 
-		if (length > 0) {
-			value = new byte[length];
-			System.arraycopy(source, index, value, 0, length);
-		} else
-			value = EMPTY_VALUE;
+	public DelimiterMode getDelimiterMode();
 
-		return value;
-	}
+	public void setSource(T source, int index, int length, DT delimiters,
+			DelimiterMode mode) throws IllegalArgumentException;
 }

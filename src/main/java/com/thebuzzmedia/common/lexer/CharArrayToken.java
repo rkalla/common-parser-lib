@@ -15,16 +15,18 @@
  */
 package com.thebuzzmedia.common.lexer;
 
+import com.thebuzzmedia.common.AbstractToken;
+
 public class CharArrayToken extends AbstractToken<char[]> {
 	public static final char[] EMPTY_VALUE = new char[0];
-
+	
+	public CharArrayToken() {
+		// default constructor
+	}
+	
 	public CharArrayToken(char[] source, int index, int length)
 			throws IllegalArgumentException {
 		super(source, index, length);
-	}
-
-	public String toString() {
-		return new String(source, index, length);
 	}
 
 	public char[] getValue() {

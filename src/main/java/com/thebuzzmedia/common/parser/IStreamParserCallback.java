@@ -13,31 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.thebuzzmedia.common.lexer;
+package com.thebuzzmedia.common.parser;
 
-import com.thebuzzmedia.common.AbstractToken;
+import java.io.InputStream;
 
-public class ByteArrayToken extends AbstractToken<byte[]> {
-	public static final byte[] EMPTY_VALUE = new byte[0];
+import com.thebuzzmedia.common.IToken;
 
-	public ByteArrayToken() {
-		// default constructor
-	}
-	
-	public ByteArrayToken(byte[] source, int index, int length)
-			throws IllegalArgumentException {
-		super(source, index, length);
-	}
-
-	public byte[] getValue() {
-		byte[] value = null;
-
-		if (length > 0) {
-			value = new byte[length];
-			System.arraycopy(source, index, value, 0, length);
-		} else
-			value = EMPTY_VALUE;
-
-		return value;
-	}
+public interface IStreamParserCallback extends
+		IParserCallback<InputStream, byte[]> {
+	public void tokenParsed(IToken<byte[]> token,
+			IParser<InputStream, byte[]> parser);
 }

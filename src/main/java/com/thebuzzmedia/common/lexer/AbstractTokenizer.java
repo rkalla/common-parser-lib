@@ -15,10 +15,12 @@
  */
 package com.thebuzzmedia.common.lexer;
 
+import com.thebuzzmedia.common.IToken;
 import com.thebuzzmedia.common.util.ArrayUtils;
 
 public abstract class AbstractTokenizer<T> implements ITokenizer<T> {
 	protected boolean moreTokens;
+	protected boolean reuseToken;
 
 	protected int index;
 	protected int length;
@@ -26,18 +28,12 @@ public abstract class AbstractTokenizer<T> implements ITokenizer<T> {
 
 	protected int tsIndex;
 	protected int teIndex;
-	protected int[] tBounds;
 
 	protected T source;
-	protected T delimiters;
-	protected DelimiterType type;
-
-	public AbstractTokenizer() {
-		tBounds = new int[2];
-	}
 
 	public void reset() {
 		moreTokens = false;
+		reuseToken = false;
 
 		index = ArrayUtils.INVALID_INDEX;
 		length = 0;
@@ -45,12 +41,8 @@ public abstract class AbstractTokenizer<T> implements ITokenizer<T> {
 
 		tsIndex = ArrayUtils.INVALID_INDEX;
 		teIndex = ArrayUtils.INVALID_INDEX;
-		tBounds[0] = ArrayUtils.INVALID_INDEX;
-		tBounds[1] = ArrayUtils.INVALID_INDEX;
 
 		source = null;
-		delimiters = null;
-		type = null;
 	}
 
 	public int getIndex() {
@@ -65,15 +57,37 @@ public abstract class AbstractTokenizer<T> implements ITokenizer<T> {
 		return source;
 	}
 
-	public T getDelimiters() {
-		return delimiters;
+	public boolean isReusingToken() {
+		return reuseToken;
 	}
 
-	public DelimiterType getDelimiterType() {
-		return type;
+	public void setReuseToken(boolean reuseToken) {
+		this.reuseToken = reuseToken;
 	}
 
-	public boolean hasMoreTokens() {
-		return moreTokens;
+	public IToken<T> nextToken() throws IllegalStateException {
+		if (source == null)
+			throw new IllegalStateException(
+					"Tokenizer has not been initialized with a source. setSource(...) must be called to prepare this tokenizer for parsing.");
+
+		IToken<T> token = null;
+
+		// Skip processing if we already exhausted the data source.
+		if (moreTokens) {
+			// Mark the bounds of the next token found.
+			nextTokenBounds();
+
+			// Ensure that we didn't just exhaust the data source.
+			if (moreTokens)
+				token = createToken(source, tsIndex, (teIndex - tsIndex));
+		}
+
+		// Either return a valid token or null if there was none
+		return token;
 	}
+
+	protected abstract void nextTokenBounds();
+
+	protected abstract IToken<T> createToken(T source, int index, int length)
+			throws IllegalArgumentException;
 }
