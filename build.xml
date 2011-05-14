@@ -25,8 +25,8 @@ limitations under the License.
 		<pathelement path="${dir.lib}/tbm-common-lib-2.0.jar" />
 	</path>
 	
-	<property name="version.major" value="1" />
-	<property name="version.minor" value="1" />
+	<property name="version.major" value="2" />
+	<property name="version.minor" value="0" />
 
 	<property name="name.file" value="tbm-common-parser-lib" />
 	<property name="name.file.javadoc" value="${name.file}-${version.major}.${version.minor}-javadoc.jar" />

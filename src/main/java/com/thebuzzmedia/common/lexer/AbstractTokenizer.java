@@ -57,7 +57,7 @@ public abstract class AbstractTokenizer<T> implements ITokenizer<T> {
 		return source;
 	}
 
-	public boolean isReusingToken() {
+	public boolean isReuseToken() {
 		return reuseToken;
 	}
 

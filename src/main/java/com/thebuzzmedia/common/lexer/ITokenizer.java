@@ -26,7 +26,7 @@ public interface ITokenizer<T> {
 
 	public int getLength();
 
-	public boolean isReusingToken();
+	public boolean isReuseToken();
 
 	public void setReuseToken(boolean reuseToken);
 

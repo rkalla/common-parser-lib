@@ -4,6 +4,45 @@ http://www.thebuzzmedia.com/software/common-parser-lib-common-parser-java-utilit
 
 Changelog
 ---------
+2.0
+	* Added parser package containing the fundamentals of a callback-based parser.
+	
+	* Added IStreamParser to spec an InputStream parser processing bytes
+	
+	* Added IReaderParser to spec a Reader parser processing chars.
+	
+	* Added base abstract implementations for all parser types that include
+	boiler-plate logic like refilling the underlying read buffer from the stream
+	and passing generated tokens to the callback. Implementors need only add the
+	actual parsing logic.
+	
+	* IContainerToken was added and contain 0 or more child IToken instances.
+	
+	* AbstractContainerToken is a base implementation for IContainerToken and
+	provides the following behavior: 
+		* Parent's length automatically expands to contain child tokens as they
+		are added.
+		* Child token bounds are vetted to ensure they are allowed within the
+		parent's bounds when added.
+	
+	* ITokenizer.isReuseToken/setReuseToken was added for performance-minded
+	use; it instructs the tokenizer impl to update and return the same IToken
+	instance every call to nextToken instead of creating a new object each time.
+	This offers a performance boost and smaller memory footprint for implementors
+	that know the token instance will be ephemeral and don't try and hold on to
+	it. 
+	
+	* ITokenizer was generalized to be a more flexible base-interface for ANY
+	kind of tokenizer; not just a delimiter-based tokenizer which it was 
+	previously.
+	
+	* IDelimitedTokenizer now contained specific delimiter-based specification.
+	
+	* Added IScanner interface used to define a base scanner implementation.
+	
+	* IToken was moved to the common base package as it applies to all the
+	parsers.
+
 1.1
 	* Initial public release.
 
@@ -15,55 +54,74 @@ This library is released under the Apache 2 License. See LICENSE.
 
 Description
 -----------
-A collection of simple, high-performance, low-overhead classes intended for 
-parsing primitive array-based content (byte[] and char[] support provided).
+A collection of interfaces and base implementations for classes that deal with
+parsing. 
 
-Successfully parsing any data is done by lexing that data into meaningful tokens
-that provide structure to the document; a parser then processes the tokens.
+The goal of this library is provide a clean API with well-defined behaviors for 
+different types of parsers to make custom parser implementation quick and easy.
+Base abstract implementations are provided, where applicable, to make extension 
+and implementation straight forward.
 
-The IToken and ITokenizer implementations form the basis of this library, 
-providing simple and fast mechanisms to pull tokens from a byte[] or char[] 
-stream based on a list of delimiters that can be matched exactly or just matched
-to any.
+The 3 types of parsers and intended use are:
+	* Scanner: A stateless set of logic used to scan a portion of data, 
+	extracting a series of IToken<T> objects describing the content and returning
+	them to the caller.	Scanners are meant to be thread-safe as they are 
+	stateless.
+	
+	* Tokenizer: A stateful class used to wrap a source of data and be invoked
+	by the caller in a while-loop, pulling nextToken() from the tokenizer until
+	it returns null; indicating the data has been exhausted. Tokenizers are 
+	meant to be reusable, but NOT thread-safe as they maintain state relative to 
+	the content they are parsing.
+	
+	* Parser: A stateful class used to parse IToken<T> instances from the given
+	source and notify a callback every time a new token is parsed. Sources can 
+	be InputStreams (byte[]) or Readers (char[]). Parsers are meant to be 
+	reusable, like tokenizers, but NOT thread-safe as they maintain state about
+	their source content as well.
+	
+There are no base implementations for scanners are they are simple yet 
+highly-specialized; any implementor can implement IScanner and fill in his own
+logic.
 
-A common use-case for "match any" delimiters would be any whitespace characters 
-that are separating values in a file you want, so tokenizing that file content
-by matching any whitespace char will give you all the values that are not 
-whitespace.
+There are base abstract and concrete implementations for ITokenizer in the form
+of a simple delimiter-based tokenizer. Base abstract implementations provide
+all the boiler plate necessary to run through the given data source and 
+implementors only need to provide the parsing logic.
 
-A common use-case for "match all" delimiters would be specifying a prefix you
-are looking for, like "-->" would give you all the content between that delimiter
-and the next occurrence of it.
-
-This library is not meant to replace full-scale language parsers, but is meant
-as a way to lex simple data as fast as possible without relying on the much-slower
-StringTokenizer class from the JDK.
-
-
-Production Use
---------------
-This library is currently used in production in a multitude of The Buzz Media
-open source and commercial products.
+Base abstract implementations for IParser are available as well, providing
+optimized boilerplate for tasks like refilling read buffers from the underlying
+streams, vetting arguments and providing hooks for the actual parse logic to 
+implementors.
 
 
 Runtime Requirements
 --------------------
-The Buzz Media common-lib: tbm-common-lib-<VER>.jar
+1.	The Buzz Media common-lib (tbm-common-lib-<VER>.jar)
+	http://www.thebuzzmedia.com/software/common-lib-common-java-utility-library/
 
 
 History
 -------
-While developing the CloudFront Log Parser and Redis Client Driver, I saw
-a lot of duplication of parsing logic.
+While developing the CloudFront Log Parser (http://www.thebuzzmedia.com/software/cloudfront-log-parser/),
+High Performance XML Parser (http://www.thebuzzmedia.com/software/high-performance-java-xml-parser-hpjxp/)
+and Redis Client Driver (http://www.thebuzzmedia.com/software/redis-java-client-db-driver/)
+I began to see a lot of duplication in parser/scanner/lexer logic emerge.
 
-Analyzing the two use-cases, pulling out the best features of both, tightening
-up the spec to make the library faster and use as little memory as possible and
-then generalizing the functionality, I arrived at this library.
+It took about a week to normalize all the use-cases into what looked like 3 
+different approaches to parsing: Scanning, tokenizing and parsing to a callback.
 
-For both those projects I needed a really fast lexer/tokenizer that could work
-on primitive array types with as little overhead as possible which is what lead
-me to a few different lexer implementations before normalizing them all into
-this cleaner API.
+In an attempt to normalize my efforts across all these projects and come up with
+a clean API that I can follow now and in the future, this general-use project
+was born.
+
+My goals for this project were not so much base implementations as they were:
+
+	* Well-defined structure to follow
+	* Solid, performant base implementations for common boilerplate.
+
+So I set out to define this library providing a clean API that can be easily
+extended to make custom parser implementations quickly.
 
 
 Contact
