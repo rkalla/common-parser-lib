@@ -21,19 +21,30 @@ import java.io.Reader;
 public abstract class AbstractReaderParser<TT> extends
 		AbstractParser<Reader, TT, char[], char[]> implements IReaderParser<TT> {
 	public AbstractReaderParser() throws IllegalArgumentException {
-		this(DEFAULT_BUFFER_SIZE);
+		this(DEFAULT_BUFFER_CAPACITY);
 	}
 
-	public AbstractReaderParser(int bufferSize) throws IllegalArgumentException {
-		this(bufferSize, 1);
-	}
-
-	public AbstractReaderParser(int bufferSize, int bufferRefillThreshold)
+	public AbstractReaderParser(int bufferCapacity)
 			throws IllegalArgumentException {
-		super(bufferSize, bufferRefillThreshold);
-		buffer = new char[this.bufferSize];
+		this(bufferCapacity, 1);
 	}
 
+	public AbstractReaderParser(int bufferCapacity, int bufferRefillThreshold)
+			throws IllegalArgumentException {
+		super(bufferCapacity, bufferRefillThreshold);
+	}
+
+	@Override
+	protected char[] createBuffer(int bufferCapacity)
+			throws IllegalArgumentException {
+		if (bufferCapacity < 1)
+			throw new IllegalArgumentException("bufferCapacity ["
+					+ bufferCapacity + "] must be >= 1");
+
+		return new char[bufferCapacity];
+	}
+
+	@Override
 	protected int readInput(char[] buffer, int offset, int length)
 			throws IOException {
 		return input.read(buffer, offset, length);

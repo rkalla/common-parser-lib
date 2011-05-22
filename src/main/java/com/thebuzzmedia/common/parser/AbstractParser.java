@@ -23,40 +23,39 @@ public abstract class AbstractParser<IT, TT, VT, ST> implements
 		IParser<IT, TT, VT, ST> {
 	public static final int DEFAULT_BUFFER_REFILL_THRESHOLD = 1;
 
-	private static final int MIN_BUFFER_SIZE = 128;
+	private static final int MIN_BUFFER_CAPACITY = 128;
 
-	protected boolean running;
-	protected boolean inputExhausted;
+	private boolean running;
+	private boolean inputExhausted;
 
-	// Volatile values that are modified during parsing
-	protected int index;
-	protected int bufferLength;
+	private int index;
+	private int bufferLength;
 
-	// Static buffer values, used for initialization of the buffer.
-	protected ST buffer;
-	protected int bufferSize;
-	protected int bufferRefillThreshold;
+	private ST buffer;
+	private int bufferCapacity;
+	private int bufferRefillThreshold;
 
 	protected IT input;
 
 	public AbstractParser() throws IllegalArgumentException {
-		this(MIN_BUFFER_SIZE);
+		this(DEFAULT_BUFFER_CAPACITY);
 	}
 
-	public AbstractParser(int bufferSize) throws IllegalArgumentException {
-		this(bufferSize, 1);
+	public AbstractParser(int bufferCapacity) throws IllegalArgumentException {
+		this(bufferCapacity, 1);
 	}
 
-	public AbstractParser(int bufferSize, int bufferRefillThreshold)
+	public AbstractParser(int bufferCapacity, int bufferRefillThreshold)
 			throws IllegalArgumentException {
-		if (bufferSize < MIN_BUFFER_SIZE)
-			throw new IllegalArgumentException("bufferSize must be >= "
-					+ MIN_BUFFER_SIZE + " to be useful");
+		if (bufferCapacity < MIN_BUFFER_CAPACITY)
+			throw new IllegalArgumentException("bufferCapacity must be >= "
+					+ MIN_BUFFER_CAPACITY + " to be useful");
 		if (bufferRefillThreshold < 1)
 			throw new IllegalArgumentException(
 					"bufferRefillThreshold must be >= 1");
 
-		this.bufferSize = bufferSize;
+		this.buffer = createBuffer(bufferCapacity);
+		this.bufferCapacity = bufferCapacity;
 		this.bufferRefillThreshold = bufferRefillThreshold;
 	}
 
@@ -86,61 +85,67 @@ public abstract class AbstractParser<IT, TT, VT, ST> implements
 		// Run until input is empty or we are manually stopped.
 		while (running) {
 			// Refill the buffer as needed
-			if ((bufferLength - index) < bufferRefillThreshold)
-				refillBuffer();
+			if ((bufferLength - index) < bufferRefillThreshold) {
+				bufferLength = refillBuffer(buffer, bufferCapacity, index,
+						bufferLength);
 
-			// Invoke user-supplied parse logic
-			IToken<TT, VT, ST> token = parseImpl();
+				// Reset index to point at the front of the buffer
+				index = 0;
 
-			// Check for a stop-condition: if input is empty and we got no token
-			if (token == null && inputExhausted)
-				running = false;
-			else
-				callback.tokenParsed(token, this);
-		}
-	}
-
-	protected int refillBuffer() throws IOException {
-		// -1 indicates this op never ran.
-		int bytesKept = -1;
-
-		// Only try and refill if we haven't drained the input already.
-		if (!inputExhausted) {
-			int bytesRead = 0;
-
-			// Calculate how many bytes are being kept
-			bytesKept = bufferLength - index;
-
-			// Are we keeping any bytes or not?
-			if (bytesKept == 0) {
-				// No kept bytes, try and refill the entire buffer.
-				bytesRead = readInput(buffer, 0, bufferSize);
-			} else {
-				// Move all the "kept" bytes to the beginning of the buffer.
-				System.arraycopy(buffer, index, buffer, 0, bytesKept);
-
-				// Only refill the remainder of space in the buffer
-				bytesRead = readInput(buffer, bytesKept, bufferSize - bytesKept);
+				// Check for stop-condition
+				if (bufferLength == 0)
+					running = false;
 			}
 
-			// Check if we exhausted the input source.
-			if (bytesRead == -1)
+			// Invoke user-supplied parse logic
+			IToken<TT, VT, ST> token = parseImpl(buffer, index, bufferLength);
+
+			// Check for stop-condition
+			if (token == null && bufferLength == 0)
+				running = false;
+			else {
+				// Adjust the parser index
+				index = (token.getIndex() + token.getLength());
+
+				// Send to callback
+				callback.tokenParsed(token, this);
+			}
+		}
+	}
+
+	protected int refillBuffer(ST buffer, int bufferCapacity,
+			int keepFromIndex, int bufferLength) throws IOException {
+		// Calculate how many bytes are being kept
+		int bytesKept = bufferLength - keepFromIndex;
+		int bytesRead = 0;
+
+		// If necessary, move kept bytes to the front of the buffer.
+		if (bytesKept > 0)
+			System.arraycopy(buffer, keepFromIndex, buffer, 0, bytesKept);
+
+		// If we haven't exhausted the input source, read more data in.
+		if (!inputExhausted) {
+			bytesRead = readInput(buffer, bytesKept, bufferCapacity - bytesKept);
+
+			// Check if we just exhausted the input source
+			if (bytesRead == -1) {
 				inputExhausted = true;
 
-			// Move the index back to the front of the buffer
-			index = 0;
-
-			// Calculate the buffer's new length
-			bufferLength = bytesKept + (running ? bytesRead : 0);
+				// Reset to 0 to ease our length calculation below
+				bytesRead = 0;
+			}
 		}
 
-		// Return the number of bytes kept to the caller.
-		return bytesKept;
+		// Return the buffer's new length
+		return (bytesKept + bytesRead);
 	}
+
+	protected abstract ST createBuffer(int bufferCapacity)
+			throws IllegalArgumentException;
 
 	protected abstract int readInput(ST buffer, int offset, int length)
 			throws IOException;
 
-	protected abstract IToken<TT, VT, ST> parseImpl() throws IOException,
-			ParserException;
+	protected abstract IToken<TT, VT, ST> parseImpl(ST buffer, int index,
+			int length) throws IOException, ParserException;
 }

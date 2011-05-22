@@ -22,17 +22,27 @@ public abstract class AbstractStreamParser<TT> extends
 		AbstractParser<InputStream, TT, byte[], byte[]> implements
 		IStreamParser<TT> {
 	public AbstractStreamParser() throws IllegalArgumentException {
-		this(DEFAULT_BUFFER_SIZE);
+		this(DEFAULT_BUFFER_CAPACITY);
 	}
 
-	public AbstractStreamParser(int bufferSize) throws IllegalArgumentException {
-		this(bufferSize, 1);
-	}
-
-	public AbstractStreamParser(int bufferSize, int bufferRefillThreshold)
+	public AbstractStreamParser(int bufferCapacity)
 			throws IllegalArgumentException {
-		super(bufferSize, bufferRefillThreshold);
-		buffer = new byte[this.bufferSize];
+		this(bufferCapacity, 1);
+	}
+
+	public AbstractStreamParser(int bufferCapacity, int bufferRefillThreshold)
+			throws IllegalArgumentException {
+		super(bufferCapacity, bufferRefillThreshold);
+	}
+
+	@Override
+	protected byte[] createBuffer(int bufferCapacity)
+			throws IllegalArgumentException {
+		if (bufferCapacity < 1)
+			throw new IllegalArgumentException("bufferCapacity ["
+					+ bufferCapacity + "] must be >= 1");
+
+		return new byte[bufferCapacity];
 	}
 
 	protected int readInput(byte[] buffer, int offset, int length)

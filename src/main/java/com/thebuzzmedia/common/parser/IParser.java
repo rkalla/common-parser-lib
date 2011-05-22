@@ -47,7 +47,7 @@ import com.thebuzzmedia.common.token.IToken;
  *            <code>InputStream</code>, <code>byte[]</code>, etc).
  */
 public interface IParser<IT, TT, VT, ST> {
-	public static final int DEFAULT_BUFFER_SIZE = 32768;
+	public static final int DEFAULT_BUFFER_CAPACITY = 32768;
 
 	/**
 	 * Used to indicate to the parser that it should stop parsing at its
