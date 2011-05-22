@@ -38,7 +38,7 @@ package com.thebuzzmedia.common.token;
  *            <code>source</code>, that this token returns (e.g.
  *            <code>String</code>, <code>int</code>, <code>char[]</code>, etc).
  * @param <ST>
- *            The type of the <code>source</code> that this token pulls it's
+ *            The type of the <code>source</code> that this token pulls its
  *            value from (e.g. <code>StringBuilder</code>,
  *            <code>InputStream</code>, <code>byte[]</code>, etc).
  */
