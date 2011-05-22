@@ -18,46 +18,24 @@ package com.thebuzzmedia.common.parser;
 import java.io.IOException;
 import java.io.Reader;
 
-public abstract class AbstractReaderParser extends
-		AbstractParser<Reader, char[]> {
-	public AbstractReaderParser() {
-		buffer = new char[BUFFER_SIZE];
+public abstract class AbstractReaderParser<TT> extends
+		AbstractParser<Reader, TT, char[], char[]> implements IReaderParser<TT> {
+	public AbstractReaderParser() throws IllegalArgumentException {
+		this(DEFAULT_BUFFER_SIZE);
 	}
 
-	protected int refillBuffer() throws IOException {
-		int bytesKept = 0;
+	public AbstractReaderParser(int bufferSize) throws IllegalArgumentException {
+		this(bufferSize, 1);
+	}
 
-		if (running) {
-			int bytesRead = 0;
+	public AbstractReaderParser(int bufferSize, int bufferRefillThreshold)
+			throws IllegalArgumentException {
+		super(bufferSize, bufferRefillThreshold);
+		buffer = new char[this.bufferSize];
+	}
 
-			// Calculate how many bytes are being kept
-			bytesKept = bufferLength - index;
-
-			// Are we keeping any bytes or not?
-			if (bytesKept == 0) {
-				// No kept bytes, try and refill the entire buffer.
-				bytesRead = input.read(buffer);
-			} else {
-				// Move all the "kept" bytes to the beginning of the buffer.
-				System.arraycopy(buffer, index, buffer, 0, bytesKept);
-
-				// Only refill the remainder of space in the buffer
-				bytesRead = input.read(buffer, bytesKept, buffer.length
-						- bytesKept);
-			}
-
-			// If we hit the end of stream, stop the parser.
-			if (bytesRead == -1)
-				running = false;
-
-			// Move the index back to the front of the buffer
-			index = 0;
-
-			// Calculate the buffer's new length
-			bufferLength = bytesKept + (running ? bytesRead : 0);
-		}
-
-		// Return the number of bytes kept to the caller.
-		return bytesKept;
+	protected int readInput(char[] buffer, int offset, int length)
+			throws IOException {
+		return input.read(buffer, offset, length);
 	}
 }

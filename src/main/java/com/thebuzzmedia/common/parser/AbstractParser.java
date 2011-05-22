@@ -17,31 +17,48 @@ package com.thebuzzmedia.common.parser;
 
 import java.io.IOException;
 
-import com.thebuzzmedia.common.IToken;
+import com.thebuzzmedia.common.token.IToken;
 
-public abstract class AbstractParser<IT, T> implements IParser<IT, T> {
+public abstract class AbstractParser<IT, TT, VT, ST> implements
+		IParser<IT, TT, VT, ST> {
 	public static final int DEFAULT_BUFFER_REFILL_THRESHOLD = 1;
 
-	static {
-		if (BUFFER_SIZE < MIN_BUFFER_SIZE)
-			throw new RuntimeException(
-					"BUFFER_SIZE is too small. System property '"
-							+ BUFFER_SIZE_PROPERTY_NAME
-							+ "' is set to '"
-							+ BUFFER_SIZE
-							+ "' which is below the minimum threshold value of "
-							+ MIN_BUFFER_SIZE + ".");
-	}
+	private static final int MIN_BUFFER_SIZE = 128;
 
 	protected boolean running;
+	protected boolean inputExhausted;
 
+	// Volatile values that are modified during parsing
 	protected int index;
 	protected int bufferLength;
+
+	// Static buffer values, used for initialization of the buffer.
+	protected ST buffer;
+	protected int bufferSize;
 	protected int bufferRefillThreshold;
 
-	protected T buffer;
-
 	protected IT input;
+
+	public AbstractParser() throws IllegalArgumentException {
+		this(MIN_BUFFER_SIZE);
+	}
+
+	public AbstractParser(int bufferSize) throws IllegalArgumentException {
+		this(bufferSize, 1);
+	}
+
+	public AbstractParser(int bufferSize, int bufferRefillThreshold)
+			throws IllegalArgumentException {
+		if (bufferSize < MIN_BUFFER_SIZE)
+			throw new IllegalArgumentException("bufferSize must be >= "
+					+ MIN_BUFFER_SIZE + " to be useful");
+		if (bufferRefillThreshold < 1)
+			throw new IllegalArgumentException(
+					"bufferRefillThreshold must be >= 1");
+
+		this.bufferSize = bufferSize;
+		this.bufferRefillThreshold = bufferRefillThreshold;
+	}
 
 	public void stop() throws UnsupportedOperationException {
 		running = false;
@@ -52,16 +69,14 @@ public abstract class AbstractParser<IT, T> implements IParser<IT, T> {
 
 		index = -1;
 		bufferLength = 0;
-		bufferRefillThreshold = DEFAULT_BUFFER_REFILL_THRESHOLD;
 
 		input = null;
 	}
 
-	public void parse(IT input, IParserCallback<IT, T> callback)
+	public void parse(IT input, IParserCallback<IT, TT, VT, ST> callback)
 			throws IllegalArgumentException, IOException, ParserException {
 		if (input == null)
-			throw new IllegalArgumentException(
-					"input cannot be null; it must be an open InputStream that is ready to be read from.");
+			throw new IllegalArgumentException("input cannot be null");
 		if (callback == null)
 			throw new IllegalArgumentException("callback cannot be null");
 
@@ -70,20 +85,62 @@ public abstract class AbstractParser<IT, T> implements IParser<IT, T> {
 
 		// Run until input is empty or we are manually stopped.
 		while (running) {
-			// Refill the buffer if necessary
+			// Refill the buffer as needed
 			if ((bufferLength - index) < bufferRefillThreshold)
 				refillBuffer();
 
 			// Invoke user-supplied parse logic
-			IToken<T> token = parseImpl();
+			IToken<TT, VT, ST> token = parseImpl();
 
-			// Pass generated token to the callback
-			callback.tokenParsed(token, this);
+			// Check for a stop-condition: if input is empty and we got no token
+			if (token == null && inputExhausted)
+				running = false;
+			else
+				callback.tokenParsed(token, this);
 		}
 	}
 
-	protected abstract int refillBuffer() throws IOException;
+	protected int refillBuffer() throws IOException {
+		// -1 indicates this op never ran.
+		int bytesKept = -1;
 
-	protected abstract IToken<T> parseImpl() throws IOException,
+		// Only try and refill if we haven't drained the input already.
+		if (!inputExhausted) {
+			int bytesRead = 0;
+
+			// Calculate how many bytes are being kept
+			bytesKept = bufferLength - index;
+
+			// Are we keeping any bytes or not?
+			if (bytesKept == 0) {
+				// No kept bytes, try and refill the entire buffer.
+				bytesRead = readInput(buffer, 0, bufferSize);
+			} else {
+				// Move all the "kept" bytes to the beginning of the buffer.
+				System.arraycopy(buffer, index, buffer, 0, bytesKept);
+
+				// Only refill the remainder of space in the buffer
+				bytesRead = readInput(buffer, bytesKept, bufferSize - bytesKept);
+			}
+
+			// Check if we exhausted the input source.
+			if (bytesRead == -1)
+				inputExhausted = true;
+
+			// Move the index back to the front of the buffer
+			index = 0;
+
+			// Calculate the buffer's new length
+			bufferLength = bytesKept + (running ? bytesRead : 0);
+		}
+
+		// Return the number of bytes kept to the caller.
+		return bytesKept;
+	}
+
+	protected abstract int readInput(ST buffer, int offset, int length)
+			throws IOException;
+
+	protected abstract IToken<TT, VT, ST> parseImpl() throws IOException,
 			ParserException;
 }

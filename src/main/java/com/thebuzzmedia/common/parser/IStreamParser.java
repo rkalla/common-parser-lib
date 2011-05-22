@@ -18,8 +18,42 @@ package com.thebuzzmedia.common.parser;
 import java.io.IOException;
 import java.io.InputStream;
 
-public interface IStreamParser extends IParser<InputStream, byte[]> {
+import com.thebuzzmedia.common.token.IToken;
+
+/**
+ * Interface used to define an {@link IParser} that is specialized to operate on
+ * {@link InputStream}s using <code>byte[]</code> buffers.
+ * 
+ * @author Riyad Kalla (software@thebuzzmedia.com)
+ * 
+ * @param <TT>
+ *            The type of the token, if necessary. If not needed, simply use a
+ *            type of {@link Void}.
+ */
+public interface IStreamParser<TT> extends
+		IParser<InputStream, TT, byte[], byte[]> {
+	/**
+	 * Used to initiate a parse operation on the given {@link InputStream},
+	 * invoking the given {@link IParserCallback} every time an {@link IToken}
+	 * is successfully generated.
+	 * 
+	 * @param input
+	 *            The input stream providing data for this parse operation.
+	 * @param callback
+	 *            The callback that will be invoked every time an {@link IToken}
+	 *            is successfully generated.
+	 * 
+	 * @throws IllegalArgumentException
+	 *             if <code>input</code> or <code>callback</code> is
+	 *             <code>null</code>.
+	 * @throws IOException
+	 *             if an I/O problem occurs while reading information from the
+	 *             input.
+	 * @throws ParserException
+	 *             if any error occurs while parsing input data (e.g. malformed
+	 *             content) and the parser cannot continue.
+	 */
 	public void parse(InputStream input,
-			IParserCallback<InputStream, byte[]> callback)
+			IParserCallback<InputStream, TT, byte[], byte[]> callback)
 			throws IllegalArgumentException, IOException, ParserException;
 }

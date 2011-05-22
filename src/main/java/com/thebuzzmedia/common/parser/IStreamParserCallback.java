@@ -15,12 +15,33 @@
  */
 package com.thebuzzmedia.common.parser;
 
-import java.io.InputStream;
+import java.io.Reader;
 
-import com.thebuzzmedia.common.IToken;
+import com.thebuzzmedia.common.token.IToken;
 
-public interface IStreamParserCallback extends
-		IParserCallback<InputStream, byte[]> {
-	public void tokenParsed(IToken<byte[]> token,
-			IParser<InputStream, byte[]> parser);
+/**
+ * Interface used to define a callback invoked by instances of
+ * {@link IStreamParser} every time an {@link IToken} is generated from the
+ * parsed content.
+ * 
+ * @author Riyad Kalla (software@thebuzzmedia.com)
+ * 
+ * @param <TT>
+ *            The type of the token, if necessary. If not needed, simply use a
+ *            type of {@link Void}.
+ */
+public interface IStreamParserCallback<TT> extends
+		IParserCallback<Reader, TT, char[], char[]> {
+	/**
+	 * Used to provide the parsed {@link IToken} to a handler implementation.
+	 * 
+	 * @param token
+	 *            The token that was parsed.
+	 * @param parser
+	 *            The parser that created the token. Having this reference can
+	 *            be handy if you wish to stop parsing due to some condition
+	 *            with {@link IStreamParser#stop()}.
+	 */
+	public void tokenParsed(IToken<TT, byte[], byte[]> token,
+			IStreamParser<TT> parser);
 }
