@@ -13,30 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.thebuzzmedia.common;
+package com.thebuzzmedia.common.token;
 
-public abstract class AbstractToken<T> implements IToken<T> {
-	protected T source;
+import com.thebuzzmedia.common.util.ArrayUtils;
 
-	protected int index;
-	protected int length;
-	
+public abstract class AbstractToken<TT, VT, ST> implements IToken<TT, VT, ST> {
+	protected TT type = null;
+
+	protected int index = ArrayUtils.INVALID_INDEX;
+	protected int length = 0;
+
+	protected ST source = null;
+
 	public AbstractToken() {
 		// default constructor
 	}
 
-	public AbstractToken(T source, int index, int length)
+	public AbstractToken(ST source, int index, int length)
 			throws IllegalArgumentException {
-		setValues(source, index, length);
+		setValue(null, source, index, length);
+	}
+
+	public AbstractToken(TT type, ST source, int index, int length)
+			throws IllegalArgumentException {
+		setValue(type, source, index, length);
 	}
 
 	@Override
 	public String toString() {
-		return this.getClass().getName() + "@" + hashCode() + "[index=" + index
-				+ ", length=" + length + ", source=" + source + "]";
+		return this.getClass().getName() + "@" + hashCode() + "[type="
+				+ (type == null ? "" : type) + ", index=" + index + ", length="
+				+ length + ", source=" + (source == null ? "" : source) + "]";
 	}
 
-	public T getSource() {
+	public TT getType() {
+		return type;
+	}
+
+	public ST getSource() {
 		return source;
 	}
 
@@ -48,7 +62,7 @@ public abstract class AbstractToken<T> implements IToken<T> {
 		return length;
 	}
 
-	protected void setValues(T source, int index, int length)
+	protected void setValue(TT type, ST source, int index, int length)
 			throws IllegalArgumentException {
 		if (source == null)
 			throw new IllegalArgumentException("source cannot be null");
@@ -56,6 +70,7 @@ public abstract class AbstractToken<T> implements IToken<T> {
 			throw new IllegalArgumentException("index [" + index
 					+ "] and length [" + length + "] must be >= 0");
 
+		this.type = type;
 		this.source = source;
 		this.index = index;
 		this.length = length;

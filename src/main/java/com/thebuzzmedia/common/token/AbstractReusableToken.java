@@ -13,31 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.thebuzzmedia.common.lexer;
+package com.thebuzzmedia.common.token;
 
-import com.thebuzzmedia.common.AbstractToken;
-
-public class ByteArrayToken extends AbstractToken<byte[]> {
-	public static final byte[] EMPTY_VALUE = new byte[0];
-
-	public ByteArrayToken() {
-		// default constructor
-	}
-	
-	public ByteArrayToken(byte[] source, int index, int length)
+public abstract class AbstractReusableToken<TT, VT, ST> extends
+		AbstractToken<TT, VT, ST> {
+	public void setValue(ST source, int index, int length)
 			throws IllegalArgumentException {
-		super(source, index, length);
+		super.setValue(null, source, index, length);
 	}
 
-	public byte[] getValue() {
-		byte[] value = null;
-
-		if (length > 0) {
-			value = new byte[length];
-			System.arraycopy(source, index, value, 0, length);
-		} else
-			value = EMPTY_VALUE;
-
-		return value;
+	public void setValue(TT type, ST source, int index, int length)
+			throws IllegalArgumentException {
+		super.setValue(type, source, index, length);
 	}
 }
