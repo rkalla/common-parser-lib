@@ -15,10 +15,11 @@
  */
 package com.thebuzzmedia.common.lexer;
 
-import com.thebuzzmedia.common.IToken;
+import com.thebuzzmedia.common.token.IToken;
 import com.thebuzzmedia.common.util.ArrayUtils;
 
-public abstract class AbstractTokenizer<T> implements ITokenizer<T> {
+public abstract class AbstractTokenizer<IT, TT, VT> implements
+		ITokenizer<IT, TT, VT, IT> {
 	protected boolean moreTokens;
 	protected boolean reuseToken;
 
@@ -29,7 +30,7 @@ public abstract class AbstractTokenizer<T> implements ITokenizer<T> {
 	protected int tsIndex;
 	protected int teIndex;
 
-	protected T source;
+	protected IT input;
 
 	public void reset() {
 		moreTokens = false;
@@ -42,7 +43,7 @@ public abstract class AbstractTokenizer<T> implements ITokenizer<T> {
 		tsIndex = ArrayUtils.INVALID_INDEX;
 		teIndex = ArrayUtils.INVALID_INDEX;
 
-		source = null;
+		input = null;
 	}
 
 	public int getIndex() {
@@ -53,8 +54,8 @@ public abstract class AbstractTokenizer<T> implements ITokenizer<T> {
 		return length;
 	}
 
-	public T getSource() {
-		return source;
+	public IT getInput() {
+		return input;
 	}
 
 	public boolean isReuseToken() {
@@ -65,21 +66,21 @@ public abstract class AbstractTokenizer<T> implements ITokenizer<T> {
 		this.reuseToken = reuseToken;
 	}
 
-	public IToken<T> nextToken() throws IllegalStateException {
-		if (source == null)
+	public IToken<TT, VT, IT> nextToken() throws IllegalStateException {
+		if (input == null)
 			throw new IllegalStateException(
-					"Tokenizer has not been initialized with a source. setSource(...) must be called to prepare this tokenizer for parsing.");
+					"Tokenizer has not been initialized with any input. setInput(...) must be called to prepare this tokenizer for work.");
 
-		IToken<T> token = null;
+		IToken<TT, VT, IT> token = null;
 
-		// Skip processing if we already exhausted the data source.
+		// Skip processing if we already exhausted the input.
 		if (moreTokens) {
 			// Mark the bounds of the next token found.
 			nextTokenBounds();
 
 			// Ensure that we didn't just exhaust the data source.
 			if (moreTokens)
-				token = createToken(source, tsIndex, (teIndex - tsIndex));
+				token = createToken(input, tsIndex, (teIndex - tsIndex));
 		}
 
 		// Either return a valid token or null if there was none
@@ -88,6 +89,6 @@ public abstract class AbstractTokenizer<T> implements ITokenizer<T> {
 
 	protected abstract void nextTokenBounds();
 
-	protected abstract IToken<T> createToken(T source, int index, int length)
-			throws IllegalArgumentException;
+	protected abstract IToken<TT, VT, IT> createToken(IT source, int index,
+			int length) throws IllegalArgumentException;
 }

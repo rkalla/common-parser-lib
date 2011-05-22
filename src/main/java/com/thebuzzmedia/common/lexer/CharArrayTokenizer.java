@@ -15,10 +15,12 @@
  */
 package com.thebuzzmedia.common.lexer;
 
-import com.thebuzzmedia.common.IToken;
+import com.thebuzzmedia.common.token.AbstractToken;
+import com.thebuzzmedia.common.token.IToken;
 import com.thebuzzmedia.common.util.ArrayUtils;
 
-public class CharArrayTokenizer extends AbstractDelimitedTokenizer<char[], char[]> {
+public class CharArrayTokenizer extends
+		AbstractDelimitedTokenizer<char[], Void, char[], char[]> {
 	private ReusableCharArrayToken reusableToken = new ReusableCharArrayToken();
 
 	/*
@@ -37,22 +39,32 @@ public class CharArrayTokenizer extends AbstractDelimitedTokenizer<char[], char[
 	 * Javadocs/Source to see why there isn't one and then understand setSource
 	 * is meant to be used over and over.
 	 */
-	public void setSource(char[] source, int index, int length,
-			char[] delimiters, DelimiterMode mode)
+
+	public void setInput(char[] input, char[] delimiters, DelimiterMode mode)
 			throws IllegalArgumentException {
-		if (source == null || delimiters == null || mode == null)
+		if (input == null || delimiters == null || mode == null)
 			throw new IllegalArgumentException(
 					"source, delimiters and mode cannot be null.");
-		if (index < 0 || length <= 0 || (index + length) > source.length)
+
+		setInput(input, 0, input.length, delimiters, mode);
+	}
+
+	public void setInput(char[] input, int index, int length,
+			char[] delimiters, DelimiterMode mode)
+			throws IllegalArgumentException {
+		if (input == null || delimiters == null || mode == null)
+			throw new IllegalArgumentException(
+					"source, delimiters and mode cannot be null.");
+		if (index < 0 || length <= 0 || (index + length) > input.length)
 			throw new IllegalArgumentException("index [" + index
 					+ "] must be >= 0, length [" + length
 					+ "] must be > 0 and (index + length) [" + (index + length)
-					+ "] must be <= source.length [" + source.length + "]");
+					+ "] must be <= source.length [" + input.length + "]");
 		if (mode == DelimiterMode.MATCH_EXACT
-				&& source.length < delimiters.length)
+				&& input.length < delimiters.length)
 			throw new IllegalArgumentException(
 					"mode specifies DelimiterMode.MATCH_EXACT, but source.length ["
-							+ source.length
+							+ input.length
 							+ "] is < delimiters.length ["
 							+ delimiters.length
 							+ "]. source must contain at least enough values to match against delimiters when using MATCH_EXACT.");
@@ -67,7 +79,7 @@ public class CharArrayTokenizer extends AbstractDelimitedTokenizer<char[], char[
 		this.length = length;
 		this.endIndex = (index + length);
 
-		this.source = source;
+		this.input = input;
 		this.delimiters = delimiters;
 		this.mode = mode;
 	}
@@ -83,21 +95,21 @@ public class CharArrayTokenizer extends AbstractDelimitedTokenizer<char[], char[
 		switch (mode) {
 		case MATCH_ANY:
 			// Scan forward (match any) to first non-delimiter value.
-			tsIndex = ArrayUtils.indexAfterAnyNoCheck(delimiters, source,
+			tsIndex = ArrayUtils.indexAfterAnyNoCheck(delimiters, input,
 					tsIndex, length - tsIndex + index);
 
 			// Scan from tsIndex to first (any) delimiter value.
-			teIndex = ArrayUtils.indexOfAnyNoCheck(delimiters, source, tsIndex,
+			teIndex = ArrayUtils.indexOfAnyNoCheck(delimiters, input, tsIndex,
 					length - tsIndex + index);
 			break;
 
 		case MATCH_EXACT:
 			// Scan forward (match all) to first non-delimiter value.
-			tsIndex = ArrayUtils.indexAfterNoCheck(delimiters, source, tsIndex,
+			tsIndex = ArrayUtils.indexAfterNoCheck(delimiters, input, tsIndex,
 					length - tsIndex + index);
 
 			// Scan from tsIndex to first (match all) delimiter values.
-			teIndex = ArrayUtils.indexOfNoCheck(delimiters, source, tsIndex,
+			teIndex = ArrayUtils.indexOfNoCheck(delimiters, input, tsIndex,
 					length - tsIndex + index);
 			break;
 		}
@@ -109,12 +121,12 @@ public class CharArrayTokenizer extends AbstractDelimitedTokenizer<char[], char[
 	}
 
 	@Override
-	protected IToken<char[]> createToken(char[] source, int index, int length)
-			throws IllegalArgumentException {
-		IToken<char[]> token;
+	protected IToken<Void, char[], char[]> createToken(char[] source,
+			int index, int length) throws IllegalArgumentException {
+		IToken<Void, char[], char[]> token;
 
 		if (reuseToken) {
-			reusableToken.setValues(source, index, length);
+			reusableToken.setValue(source, index, length);
 			token = reusableToken;
 		} else
 			token = new CharArrayToken(source, index, length);
@@ -122,10 +134,32 @@ public class CharArrayTokenizer extends AbstractDelimitedTokenizer<char[], char[
 		return token;
 	}
 
-	class ReusableCharArrayToken extends CharArrayToken {
-		public void setValues(char[] source, int index, int length)
+	public class CharArrayToken extends AbstractToken<Void, char[], char[]> {
+		public CharArrayToken() {
+			// default constructor
+		}
+
+		public CharArrayToken(char[] source, int index, int length)
 				throws IllegalArgumentException {
-			super.setValues(source, index, length);
+			super(source, index, length);
+		}
+
+		public char[] getValue() {
+			char[] value = null;
+
+			if (length > 0) {
+				value = new char[length];
+				System.arraycopy(source, index, value, 0, length);
+			}
+
+			return value;
+		}
+	}
+
+	class ReusableCharArrayToken extends CharArrayToken {
+		public void setValue(char[] source, int index, int length)
+				throws IllegalArgumentException {
+			super.setValue(null, source, index, length);
 		}
 	}
 }

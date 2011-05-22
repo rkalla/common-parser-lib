@@ -15,12 +15,34 @@
  */
 package com.thebuzzmedia.common.lexer;
 
-import com.thebuzzmedia.common.IToken;
+import java.io.InputStream;
+import java.io.Reader;
 
-public interface ITokenizer<T> {
+import com.thebuzzmedia.common.token.IToken;
+
+/**
+ * 
+ * @author Riyad Kalla (software@thebuzzmedia.com)
+ * 
+ * @param <IT>
+ *            The type of the input that this tokenizer will process (e.g.
+ *            {@link InputStream}, <code>byte[]</code>, {@link Reader}, etc).
+ * @param <TT>
+ *            The type of the token, if necessary. If not needed, simply use a
+ *            type of {@link Void}.
+ * @param <VT>
+ *            The type of {@link IToken#getValue()} as extracted from the given
+ *            <code>source</code> (e.g. <code>String</code>, <code>int</code>,
+ *            <code>char[]</code>, etc).
+ * @param <ST>
+ *            The type of the <code>source</code> that the tokens will pull
+ *            their values from (e.g. <code>StringBuilder</code>,
+ *            <code>InputStream</code>, <code>byte[]</code>, etc).
+ */
+public interface ITokenizer<IT, TT, VT, ST> {
 	public void reset();
 
-	public T getSource();
+	public IT getInput();
 
 	public int getIndex();
 
@@ -30,8 +52,10 @@ public interface ITokenizer<T> {
 
 	public void setReuseToken(boolean reuseToken);
 
-	public void setSource(T source, int index, int length)
+	public void setInput(IT input) throws IllegalArgumentException;
+
+	public void setInput(IT input, int index, int length)
 			throws IllegalArgumentException;
 
-	public IToken<T> nextToken() throws IllegalStateException;
+	public IToken<TT, VT, ST> nextToken() throws IllegalStateException;
 }

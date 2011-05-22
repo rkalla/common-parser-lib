@@ -15,7 +15,8 @@
  */
 package com.thebuzzmedia.common.lexer;
 
-public interface IDelimitedTokenizer<T, DT> extends ITokenizer<T> {
+public interface IDelimitedTokenizer<IT, TT, VT, ST, DT> extends
+		ITokenizer<IT, TT, VT, ST> {
 	public enum DelimiterMode {
 		MATCH_ANY, MATCH_EXACT;
 	}
@@ -24,6 +25,9 @@ public interface IDelimitedTokenizer<T, DT> extends ITokenizer<T> {
 
 	public DelimiterMode getDelimiterMode();
 
-	public void setSource(T source, int index, int length, DT delimiters,
+	public void setInput(IT input, DT delimiters, DelimiterMode mode)
+			throws IllegalArgumentException;
+
+	public void setInput(IT input, int index, int length, DT delimiters,
 			DelimiterMode mode) throws IllegalArgumentException;
 }

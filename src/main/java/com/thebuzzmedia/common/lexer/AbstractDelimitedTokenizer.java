@@ -15,8 +15,9 @@
  */
 package com.thebuzzmedia.common.lexer;
 
-public abstract class AbstractDelimitedTokenizer<T, DT> extends
-		AbstractTokenizer<T> implements IDelimitedTokenizer<T, DT> {
+public abstract class AbstractDelimitedTokenizer<IT, TT, VT, DT> extends
+		AbstractTokenizer<IT, TT, VT> implements
+		IDelimitedTokenizer<IT, TT, VT, IT, DT> {
 	protected DT delimiters;
 	protected DelimiterMode mode;
 
@@ -35,9 +36,14 @@ public abstract class AbstractDelimitedTokenizer<T, DT> extends
 		return mode;
 	}
 
-	public void setSource(T source, int index, int length)
+	public final void setInput(IT input) throws IllegalArgumentException {
+		throw new UnsupportedOperationException(
+				"setInput(<IT>) is unsupported for IDelimitedTokenizer instances. Please use the setInput(<IT>, <DT>, DelimiterMode) method instead.");
+	}
+
+	public final void setInput(IT input, int index, int length)
 			throws IllegalArgumentException {
 		throw new UnsupportedOperationException(
-				"setSource(T, int, int) is unsupported for ISimpleTokenizer instances. Please use the setSource(T, int, int, DT, DelimiterMode) method instead.");
+				"setInput(<IT>, int, int) is unsupported for IDelimitedTokenizer instances. Please use the setInput(<SI>, int, int, <DT>, DelimiterMode) method instead.");
 	}
 }
