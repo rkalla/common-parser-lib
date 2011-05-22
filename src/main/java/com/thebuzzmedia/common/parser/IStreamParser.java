@@ -53,7 +53,6 @@ public interface IStreamParser<TT> extends
 	 *             if any error occurs while parsing input data (e.g. malformed
 	 *             content) and the parser cannot continue.
 	 */
-	public void parse(InputStream input,
-			IParserCallback<InputStream, TT, byte[], byte[]> callback)
+	public void parse(InputStream input, IStreamParserCallback<TT> callback)
 			throws IllegalArgumentException, IOException, ParserException;
 }

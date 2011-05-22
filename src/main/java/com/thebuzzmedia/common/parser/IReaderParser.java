@@ -52,7 +52,6 @@ public interface IReaderParser<TT> extends IParser<Reader, TT, char[], char[]> {
 	 *             if any error occurs while parsing input data (e.g. malformed
 	 *             content) and the parser cannot continue.
 	 */
-	public void parse(Reader input,
-			IParserCallback<Reader, TT, char[], char[]> callback)
+	public void parse(Reader input, IReaderParserCallback<TT> callback)
 			throws IllegalArgumentException, IOException, ParserException;
 }
