@@ -45,7 +45,7 @@ public abstract class AbstractReaderParser<TT> extends
 	}
 
 	@Override
-	protected int readInput(char[] buffer, int offset, int length)
+	protected int readInput(Reader input, char[] buffer, int offset, int length)
 			throws IOException {
 		return input.read(buffer, offset, length);
 	}

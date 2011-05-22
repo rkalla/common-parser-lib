@@ -35,7 +35,7 @@ public abstract class AbstractParser<IT, TT, VT, ST> implements
 	private int bufferCapacity;
 	private int bufferRefillThreshold;
 
-	protected IT input;
+	private IT input;
 
 	public AbstractParser() throws IllegalArgumentException {
 		this(DEFAULT_BUFFER_CAPACITY);
@@ -125,7 +125,8 @@ public abstract class AbstractParser<IT, TT, VT, ST> implements
 
 		// If we haven't exhausted the input source, read more data in.
 		if (!inputExhausted) {
-			bytesRead = readInput(buffer, bytesKept, bufferCapacity - bytesKept);
+			bytesRead = readInput(input, buffer, bytesKept, bufferCapacity
+					- bytesKept);
 
 			// Check if we just exhausted the input source
 			if (bytesRead == -1) {
@@ -143,7 +144,7 @@ public abstract class AbstractParser<IT, TT, VT, ST> implements
 	protected abstract ST createBuffer(int bufferCapacity)
 			throws IllegalArgumentException;
 
-	protected abstract int readInput(ST buffer, int offset, int length)
+	protected abstract int readInput(IT input, ST buffer, int offset, int length)
 			throws IOException;
 
 	protected abstract IToken<TT, VT, ST> parseImpl(ST buffer, int index,

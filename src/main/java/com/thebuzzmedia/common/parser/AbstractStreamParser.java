@@ -45,8 +45,8 @@ public abstract class AbstractStreamParser<TT> extends
 		return new byte[bufferCapacity];
 	}
 
-	protected int readInput(byte[] buffer, int offset, int length)
-			throws IOException {
+	protected int readInput(InputStream input, byte[] buffer, int offset,
+			int length) throws IOException {
 		return input.read(buffer, offset, length);
 	}
 }

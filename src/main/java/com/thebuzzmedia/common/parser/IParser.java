@@ -42,7 +42,7 @@ import com.thebuzzmedia.common.token.IToken;
  *            <code>source</code> (e.g. <code>String</code>, <code>int</code>,
  *            <code>char[]</code>, etc).
  * @param <ST>
- *            The type of the <code>source</code> that the tokens will pulls
+ *            The type of the <code>source</code> that the tokens will pull
  *            their values from (e.g. <code>StringBuilder</code>,
  *            <code>InputStream</code>, <code>byte[]</code>, etc).
  */
