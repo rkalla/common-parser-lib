@@ -16,7 +16,7 @@
 package com.thebuzzmedia.common.lexer;
 
 public abstract class AbstractDelimitedTokenizer<IT, TT, VT, DT> extends
-		AbstractTokenizer<IT, TT, VT> implements
+		AbstractSimpleTokenizer<IT, TT, VT> implements
 		IDelimitedTokenizer<IT, TT, VT, IT, DT> {
 	protected DT delimiters;
 	protected DelimiterMode mode;

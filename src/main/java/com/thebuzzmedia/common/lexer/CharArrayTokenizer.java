@@ -21,6 +21,7 @@ import com.thebuzzmedia.common.util.ArrayUtils;
 
 public class CharArrayTokenizer extends
 		AbstractDelimitedTokenizer<char[], Void, char[], char[]> {
+	private int endIndex;
 	private ReusableCharArrayToken reusableToken = new ReusableCharArrayToken();
 
 	/*
@@ -39,6 +40,13 @@ public class CharArrayTokenizer extends
 	 * Javadocs/Source to see why there isn't one and then understand setSource
 	 * is meant to be used over and over.
 	 */
+
+	@Override
+	public void reset() {
+		super.reset();
+
+		endIndex = ArrayUtils.INVALID_INDEX;
+	}
 
 	public void setInput(char[] input, char[] delimiters, DelimiterMode mode)
 			throws IllegalArgumentException {
@@ -84,7 +92,7 @@ public class CharArrayTokenizer extends
 		this.mode = mode;
 	}
 
-	protected void nextTokenBounds() {
+	protected void updateTokenBounds() {
 		// On first call, start at index, otherwise start at teIndex.
 		tsIndex = (teIndex == ArrayUtils.INVALID_INDEX ? index : teIndex);
 

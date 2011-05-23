@@ -15,33 +15,20 @@
  */
 package com.thebuzzmedia.common.lexer;
 
-import com.thebuzzmedia.common.token.IToken;
 import com.thebuzzmedia.common.util.ArrayUtils;
 
-public abstract class AbstractTokenizer<IT, TT, VT> implements
-		ITokenizer<IT, TT, VT, IT> {
-	protected boolean moreTokens;
+public abstract class AbstractTokenizer<IT, TT, VT, ST> implements
+		ITokenizer<IT, TT, VT, ST> {
 	protected boolean reuseToken;
 
 	protected int index;
 	protected int length;
-	protected int endIndex;
-
-	protected int tsIndex;
-	protected int teIndex;
 
 	protected IT input;
 
 	public void reset() {
-		moreTokens = false;
-		reuseToken = false;
-
 		index = ArrayUtils.INVALID_INDEX;
 		length = 0;
-		endIndex = ArrayUtils.INVALID_INDEX;
-
-		tsIndex = ArrayUtils.INVALID_INDEX;
-		teIndex = ArrayUtils.INVALID_INDEX;
 
 		input = null;
 	}
@@ -65,30 +52,4 @@ public abstract class AbstractTokenizer<IT, TT, VT> implements
 	public void setReuseToken(boolean reuseToken) {
 		this.reuseToken = reuseToken;
 	}
-
-	public IToken<TT, VT, IT> nextToken() throws IllegalStateException {
-		if (input == null)
-			throw new IllegalStateException(
-					"Tokenizer has not been initialized with any input. setInput(...) must be called to prepare this tokenizer for work.");
-
-		IToken<TT, VT, IT> token = null;
-
-		// Skip processing if we already exhausted the input.
-		if (moreTokens) {
-			// Mark the bounds of the next token found.
-			nextTokenBounds();
-
-			// Ensure that we didn't just exhaust the data source.
-			if (moreTokens)
-				token = createToken(input, tsIndex, (teIndex - tsIndex));
-		}
-
-		// Either return a valid token or null if there was none
-		return token;
-	}
-
-	protected abstract void nextTokenBounds();
-
-	protected abstract IToken<TT, VT, IT> createToken(IT source, int index,
-			int length) throws IllegalArgumentException;
 }

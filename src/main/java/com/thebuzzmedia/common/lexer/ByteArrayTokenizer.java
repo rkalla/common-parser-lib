@@ -21,6 +21,7 @@ import com.thebuzzmedia.common.util.ArrayUtils;
 
 public class ByteArrayTokenizer extends
 		AbstractDelimitedTokenizer<byte[], Void, byte[], byte[]> {
+	private int endIndex;
 	private ReusableByteArrayToken reusableToken = new ReusableByteArrayToken();
 
 	/*
@@ -39,6 +40,13 @@ public class ByteArrayTokenizer extends
 	 * Javadocs/Source to see why there isn't one and then understand setSource
 	 * is meant to be used over and over.
 	 */
+	
+	@Override
+	public void reset() {
+		super.reset();
+		
+		endIndex = ArrayUtils.INVALID_INDEX;
+	}
 
 	public void setInput(byte[] input, byte[] delimiters, DelimiterMode mode)
 			throws IllegalArgumentException {
@@ -84,7 +92,7 @@ public class ByteArrayTokenizer extends
 		this.mode = mode;
 	}
 
-	protected void nextTokenBounds() {
+	protected void updateTokenBounds() {
 		// On first call, start at index, otherwise start at teIndex.
 		tsIndex = (teIndex == ArrayUtils.INVALID_INDEX ? index : teIndex);
 
