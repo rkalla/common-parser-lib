@@ -31,12 +31,21 @@ public abstract class AbstractToken<TT, VT, ST> implements IToken<TT, VT, ST> {
 
 	public AbstractToken(ST source, int index, int length)
 			throws IllegalArgumentException {
-		setValue(null, source, index, length);
+		this(null, source, index, length);
 	}
 
 	public AbstractToken(TT type, ST source, int index, int length)
 			throws IllegalArgumentException {
-		setValue(type, source, index, length);
+		if (source == null)
+			throw new IllegalArgumentException("source cannot be null");
+		if (index < 0 || length < 0)
+			throw new IllegalArgumentException("index [" + index
+					+ "] and length [" + length + "] must be >= 0");
+
+		this.type = type;
+		this.source = source;
+		this.index = index;
+		this.length = length;
 	}
 
 	@Override
@@ -60,19 +69,5 @@ public abstract class AbstractToken<TT, VT, ST> implements IToken<TT, VT, ST> {
 
 	public int getLength() {
 		return length;
-	}
-
-	protected void setValue(TT type, ST source, int index, int length)
-			throws IllegalArgumentException {
-		if (source == null)
-			throw new IllegalArgumentException("source cannot be null");
-		if (index < 0 || length < 0)
-			throw new IllegalArgumentException("index [" + index
-					+ "] and length [" + length + "] must be >= 0");
-
-		this.type = type;
-		this.source = source;
-		this.index = index;
-		this.length = length;
 	}
 }

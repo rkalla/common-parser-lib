@@ -22,22 +22,26 @@ import com.thebuzzmedia.common.util.ArrayUtils;
 
 public abstract class AbstractContainerToken<TT, VT, ST> extends
 		AbstractToken<TT, VT, ST> implements IContainerToken<TT, VT, ST> {
-	protected BoundsMode mode = BoundsMode.FIT_TO_CHILD;
+	protected BoundsMode mode;
 	protected List<IToken<TT, VT, ST>> tokenList;
 
 	public AbstractContainerToken() {
-		// default constructor
+		this.mode = BoundsMode.FIT_TO_CHILD;
 	}
 
 	public AbstractContainerToken(ST source, int index, int length)
 			throws IllegalArgumentException {
-		this(null, source, index, length, null);
+		this(null, source, index, length, BoundsMode.FIT_TO_CHILD);
 	}
 
 	public AbstractContainerToken(TT type, ST source, int index, int length,
 			BoundsMode mode) throws IllegalArgumentException {
-		setValue(type, source, index, length,
-				(mode == null ? BoundsMode.FIT_TO_CHILD : mode));
+		super(type, source, index, length);
+
+		if (mode == null)
+			throw new IllegalArgumentException("mode cannot be null");
+
+		this.mode = mode;
 	}
 
 	@Override
@@ -63,8 +67,8 @@ public abstract class AbstractContainerToken<TT, VT, ST> extends
 			throw new IllegalArgumentException("token cannot be null");
 
 		int tIndex = token.getIndex();
-		int tLength = tIndex + token.getLength();
-		int endIndex = (index + length);
+		int tUpperBounds = tIndex + token.getLength();
+		int containerEndIndex = (index + length);
 
 		// Sanity check
 		if (tIndex < 0)
@@ -76,28 +80,35 @@ public abstract class AbstractContainerToken<TT, VT, ST> extends
 			// Adjust index if necessary
 			if ((index == ArrayUtils.INVALID_INDEX) || (tIndex < index))
 				index = tIndex;
+
 			// Adjust length if necessary
-			if (tLength > length)
-				length = tLength;
+			if (tUpperBounds > length)
+				length = tUpperBounds;
 			break;
 
 		case FIXED:
 			// Check index
-			if ((tIndex < index) || (tIndex >= endIndex))
+			if ((tIndex < index) || (tIndex >= containerEndIndex))
 				throw new IllegalArgumentException("token.getIndex() ["
 						+ tIndex + "] must be >= getIndex() [" + index
-						+ "] and < (getIndex() + getLength()) [" + (endIndex)
-						+ "]");
+						+ "] and < (getIndex() + getLength()) ["
+						+ containerEndIndex + "]");
+
 			// Check length
-			if (tLength > endIndex)
+			if (tUpperBounds > containerEndIndex)
 				throw new IllegalArgumentException(
-						"(token.getIndex() + token.getLength()) [" + tLength
+						"(token.getIndex() + token.getLength()) ["
+								+ tUpperBounds
 								+ "] must be <= (getIndex() + getLength()) ["
-								+ (endIndex) + "]");
+								+ containerEndIndex + "]");
 			break;
 		}
 
-		// Avoid creating two disjointed lists, block on this.
+		/*
+		 * Thread-Safe: Lock on "this" to avoid two threads coming in here and
+		 * creating two separate lists, potentially storing tokens in disjoint
+		 * lists this container knows nothing about.
+		 */
 		synchronized (this) {
 			// init the list if this is our first add
 			if (tokenList == null)
@@ -114,19 +125,5 @@ public abstract class AbstractContainerToken<TT, VT, ST> extends
 					+ getTokenCount() + "]");
 
 		return tokenList.get(index);
-	}
-
-	protected void setValue(TT type, ST source, int index, int length,
-			BoundsMode mode) throws IllegalArgumentException {
-		if (source == null)
-			throw new IllegalArgumentException("source cannot be null");
-		if (index < 0 || length < 0)
-			throw new IllegalArgumentException("index [" + index
-					+ "] and length [" + length + "] must be >= 0");
-		if (mode == null)
-			throw new IllegalArgumentException("mode cannot be null");
-
-		super.setValue(type, source, index, length);
-		this.mode = mode;
 	}
 }

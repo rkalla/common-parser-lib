@@ -19,11 +19,20 @@ public abstract class AbstractReusableToken<TT, VT, ST> extends
 		AbstractToken<TT, VT, ST> {
 	public void setValue(ST source, int index, int length)
 			throws IllegalArgumentException {
-		super.setValue(null, source, index, length);
+		setValue(null, source, index, length);
 	}
 
-	public void setValue(TT type, ST source, int index, int length)
+	protected void setValue(TT type, ST source, int index, int length)
 			throws IllegalArgumentException {
-		super.setValue(type, source, index, length);
+		if (source == null)
+			throw new IllegalArgumentException("source cannot be null");
+		if (index < 0 || length < 0)
+			throw new IllegalArgumentException("index [" + index
+					+ "] and length [" + length + "] must be >= 0");
+
+		this.type = type;
+		this.source = source;
+		this.index = index;
+		this.length = length;
 	}
 }
