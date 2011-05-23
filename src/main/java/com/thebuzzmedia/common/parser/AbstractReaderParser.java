@@ -35,7 +35,7 @@ public abstract class AbstractReaderParser<TT> extends
 	}
 
 	@Override
-	protected char[] createBuffer(int bufferCapacity)
+	protected char[] createBuffer(final int bufferCapacity)
 			throws IllegalArgumentException {
 		if (bufferCapacity < 1)
 			throw new IllegalArgumentException("bufferCapacity ["
@@ -45,8 +45,13 @@ public abstract class AbstractReaderParser<TT> extends
 	}
 
 	@Override
-	protected int readInput(Reader input, char[] buffer, int offset, int length)
-			throws IOException {
+	protected int readFromInput(final Reader input, final char[] buffer,
+			final int offset, final int length) throws IOException {
 		return input.read(buffer, offset, length);
+	}
+
+	public void parse(Reader input, IReaderParserCallback<TT> callback)
+			throws IllegalArgumentException, IOException, ParserException {
+		super.parse(input, callback);
 	}
 }

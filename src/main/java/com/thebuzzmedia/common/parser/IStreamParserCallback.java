@@ -15,7 +15,7 @@
  */
 package com.thebuzzmedia.common.parser;
 
-import java.io.Reader;
+import java.io.InputStream;
 
 import com.thebuzzmedia.common.token.IToken;
 
@@ -31,7 +31,7 @@ import com.thebuzzmedia.common.token.IToken;
  *            type of {@link Void}.
  */
 public interface IStreamParserCallback<TT> extends
-		IParserCallback<Reader, TT, char[], char[]> {
+		IParserCallback<InputStream, TT, byte[], byte[]> {
 	/**
 	 * Used to provide the parsed {@link IToken} to a handler implementation.
 	 * 

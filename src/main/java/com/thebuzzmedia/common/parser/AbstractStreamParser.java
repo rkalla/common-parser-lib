@@ -36,7 +36,7 @@ public abstract class AbstractStreamParser<TT> extends
 	}
 
 	@Override
-	protected byte[] createBuffer(int bufferCapacity)
+	protected byte[] createBuffer(final int bufferCapacity)
 			throws IllegalArgumentException {
 		if (bufferCapacity < 1)
 			throw new IllegalArgumentException("bufferCapacity ["
@@ -45,8 +45,14 @@ public abstract class AbstractStreamParser<TT> extends
 		return new byte[bufferCapacity];
 	}
 
-	protected int readInput(InputStream input, byte[] buffer, int offset,
-			int length) throws IOException {
+	@Override
+	protected int readFromInput(final InputStream input, final byte[] buffer,
+			final int offset, final int length) throws IOException {
 		return input.read(buffer, offset, length);
+	}
+
+	public void parse(InputStream input, IStreamParserCallback<TT> callback)
+			throws IllegalArgumentException, IOException, ParserException {
+		super.parse(input, callback);
 	}
 }

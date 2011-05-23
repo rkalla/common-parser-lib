@@ -18,6 +18,7 @@ package com.thebuzzmedia.common.parser;
 import java.io.IOException;
 
 import com.thebuzzmedia.common.token.IToken;
+import com.thebuzzmedia.common.util.ArrayUtils;
 
 public abstract class AbstractParser<IT, TT, VT, ST> implements
 		IParser<IT, TT, VT, ST> {
@@ -29,13 +30,11 @@ public abstract class AbstractParser<IT, TT, VT, ST> implements
 	private boolean inputExhausted;
 
 	private int index;
-	private int bufferLength;
+	private int length;
 
 	private ST buffer;
 	private int bufferCapacity;
 	private int bufferRefillThreshold;
-
-	private IT input;
 
 	public AbstractParser() throws IllegalArgumentException {
 		this(DEFAULT_BUFFER_CAPACITY);
@@ -65,11 +64,10 @@ public abstract class AbstractParser<IT, TT, VT, ST> implements
 
 	public void reset() {
 		running = true;
+		inputExhausted = false;
 
-		index = -1;
-		bufferLength = 0;
-
-		input = null;
+		index = ArrayUtils.INVALID_INDEX;
+		length = 0;
 	}
 
 	public void parse(IT input, IParserCallback<IT, TT, VT, ST> callback)
@@ -82,71 +80,70 @@ public abstract class AbstractParser<IT, TT, VT, ST> implements
 		// Reset the parser state
 		reset();
 
-		// Run until input is empty or we are manually stopped.
+		// Do the initial buffer fill
+		length = refillBuffer(input, buffer, bufferCapacity, 0, 0);
+
+		// Loop until stopped
 		while (running) {
-			// Refill the buffer as needed
-			if ((bufferLength - index) < bufferRefillThreshold) {
-				bufferLength = refillBuffer(buffer, bufferCapacity, index,
-						bufferLength);
+			// Attempt to parse a token.
+			IToken<TT, VT, ST> token = parseImpl(buffer, index, length);
+
+			// If we couldn't parse a token, time to stop.
+			if (token == null)
+				running = false;
+			else {
+				// Give the token to the callback.
+				callback.tokenParsed(token, this);
+
+				// Adjust the parser index to the next pos after token.
+				index = (token.getIndex() + token.getLength());
+			}
+
+			// Refill the buffer if needed and input isn't used up.
+			if (!inputExhausted && ((length - index) < bufferRefillThreshold)) {
+				length = refillBuffer(input, buffer, bufferCapacity, index,
+						length);
 
 				// Reset index to point at the front of the buffer
 				index = 0;
 
-				// Check for stop-condition
-				if (bufferLength == 0)
+				// If our buffer is empty, it is time to stop.
+				if (length <= 0)
 					running = false;
-			}
-
-			// Invoke user-supplied parse logic
-			IToken<TT, VT, ST> token = parseImpl(buffer, index, bufferLength);
-
-			// Check for stop-condition
-			if (token == null && bufferLength == 0)
-				running = false;
-			else {
-				// Adjust the parser index
-				index = (token.getIndex() + token.getLength());
-
-				// Send to callback
-				callback.tokenParsed(token, this);
 			}
 		}
 	}
 
-	protected int refillBuffer(ST buffer, int bufferCapacity,
+	protected int refillBuffer(IT input, ST buffer, int bufferCapacity,
 			int keepFromIndex, int bufferLength) throws IOException {
-		// Calculate how many bytes are being kept
-		int bytesKept = bufferLength - keepFromIndex;
 		int bytesRead = 0;
 
-		// If necessary, move kept bytes to the front of the buffer.
+		// Calculate how many bytes are being kept
+		int bytesKept = bufferLength - keepFromIndex;
+
+		// If needed, move "kept" data to the front of the buffer.
 		if (bytesKept > 0)
 			System.arraycopy(buffer, keepFromIndex, buffer, 0, bytesKept);
 
-		// If we haven't exhausted the input source, read more data in.
-		if (!inputExhausted) {
-			bytesRead = readInput(input, buffer, bytesKept, bufferCapacity
-					- bytesKept);
+		// Read data into the buffer from our input
+		bytesRead = readFromInput(input, buffer, bytesKept, bufferCapacity
+				- bytesKept);
 
-			// Check if we just exhausted the input source
-			if (bytesRead == -1) {
-				inputExhausted = true;
+		// Check if we exhausted the input source
+		if (bytesRead == -1)
+			inputExhausted = true;
 
-				// Reset to 0 to ease our length calculation below
-				bytesRead = 0;
-			}
-		}
-
-		// Return the buffer's new length
-		return (bytesKept + bytesRead);
+		// Return the length of data in the buffer now, -1 if nothing.
+		return (bytesRead + bytesKept);
 	}
 
-	protected abstract ST createBuffer(int bufferCapacity)
+	protected abstract ST createBuffer(final int bufferCapacity)
 			throws IllegalArgumentException;
 
-	protected abstract int readInput(IT input, ST buffer, int offset, int length)
-			throws IOException;
+	protected abstract int readFromInput(final IT input, final ST buffer,
+			final int offset, final int length) throws IOException;
 
-	protected abstract IToken<TT, VT, ST> parseImpl(ST buffer, int index,
-			int length) throws IOException, ParserException;
+	protected abstract IToken<TT, VT, ST> parseImpl(final ST buffer,
+			final int index, final int length) throws IOException,
+			ParserException;
 }
