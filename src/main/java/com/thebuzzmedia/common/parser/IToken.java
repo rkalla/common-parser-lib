@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.thebuzzmedia.common.token;
+package com.thebuzzmedia.common.parser;
 
 /**
  * Used to define the fundamental marking mechanism used by all parsing

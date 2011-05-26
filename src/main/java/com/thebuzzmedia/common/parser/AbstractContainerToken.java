@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.thebuzzmedia.common.token;
+package com.thebuzzmedia.common.parser;
 
 import java.util.ArrayList;
 import java.util.List;

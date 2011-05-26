@@ -15,14 +15,19 @@
  */
 package com.thebuzzmedia.common.parser;
 
-public class ParserException extends RuntimeException {
-	private static final long serialVersionUID = 1L;
 
-	public ParserException(String reason) {
-		super(reason);
+public abstract class AbstractTokenizer<IT, TT, VT, ST> extends
+		AbstractParser<IT, TT, VT, ST> implements ITokenizer<IT, TT, VT, ST> {
+	public AbstractTokenizer() {
+		super(DEFAULT_BUFFER_CAPACITY);
 	}
 
-	public ParserException(String reason, Throwable cause) {
-		super(reason, cause);
+	public AbstractTokenizer(int bufferCapacity)
+			throws IllegalArgumentException {
+		super(bufferCapacity);
+	}
+
+	public IToken<TT, VT, ST> nextToken() throws ParseException {
+		return parseToken();
 	}
 }

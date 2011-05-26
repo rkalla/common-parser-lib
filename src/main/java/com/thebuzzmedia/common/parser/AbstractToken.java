@@ -13,16 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.thebuzzmedia.common.token;
+package com.thebuzzmedia.common.parser;
 
-public abstract class AbstractReusableToken<TT, VT, ST> extends
-		AbstractToken<TT, VT, ST> {
-	public void setValue(ST source, int index, int length)
-			throws IllegalArgumentException {
-		setValue(null, source, index, length);
+import com.thebuzzmedia.common.util.ArrayUtils;
+
+public abstract class AbstractToken<TT, VT, ST> implements IToken<TT, VT, ST> {
+	protected TT type = null;
+
+	protected int index = ArrayUtils.INVALID_INDEX;
+	protected int length = 0;
+
+	protected ST source = null;
+
+	public AbstractToken() {
+		// default constructor
 	}
 
-	protected void setValue(TT type, ST source, int index, int length)
+	public AbstractToken(ST source, int index, int length)
+			throws IllegalArgumentException {
+		this(null, source, index, length);
+	}
+
+	public AbstractToken(TT type, ST source, int index, int length)
 			throws IllegalArgumentException {
 		if (source == null)
 			throw new IllegalArgumentException("source cannot be null");
@@ -34,5 +46,28 @@ public abstract class AbstractReusableToken<TT, VT, ST> extends
 		this.source = source;
 		this.index = index;
 		this.length = length;
+	}
+
+	@Override
+	public String toString() {
+		return this.getClass().getName() + "@" + hashCode() + "[type="
+				+ (type == null ? "" : type) + ", index=" + index + ", length="
+				+ length + ", source=" + (source == null ? "" : source) + "]";
+	}
+
+	public TT getType() {
+		return type;
+	}
+
+	public ST getSource() {
+		return source;
+	}
+
+	public int getIndex() {
+		return index;
+	}
+
+	public int getLength() {
+		return length;
 	}
 }
