@@ -26,29 +26,27 @@ public class ByteArrayTokenizer extends
 	private ReusableByteArrayToken reusableToken = new ReusableByteArrayToken();
 
 	public ByteArrayTokenizer() {
-		super(DEFAULT_BUFFER_CAPACITY);
+		this(false);
 	}
 
-	public ByteArrayTokenizer(int bufferCapacity)
+	public ByteArrayTokenizer(boolean reuseToken) {
+		this(reuseToken, DEFAULT_BUFFER_CAPACITY);
+	}
+
+	public ByteArrayTokenizer(boolean reuseToken, int bufferCapacity)
 			throws IllegalArgumentException {
 		super(bufferCapacity);
+		this.reuseToken = reuseToken;
 	}
 
 	/*
-	 * No constructors are specified to help encourage re-use of Tokenizer
-	 * instances via setInput(...)
+	 * No constructors accepting IInputs are specified to help encourage callers
+	 * to look closer at the API and recognize that instances of this type are
+	 * easily re-used via the setInput(IInput) method.
 	 * 
-	 * With no constructors present, callers are directed to learn about the
-	 * setInput methods and realize that they can re-use tokenizers over and
-	 * over.
-	 * 
-	 * Had equivalent constructors been present, it leads to the
-	 * all-too-familiar and wasteful pattern of wrapping data you want to parse
-	 * with a new tokenizer, using it, then throwing it away. The JDK's
-	 * tokenizer implementation taught this pattern.
-	 * 
-	 * The goal of removing constructors is to encourage users to look closer at
-	 * the API or Javadoc and understand the re-use pattern.
+	 * JDK Tokenizer taught us the habit of wrapping content in a new Tokenizer
+	 * instance every time, so we purposefully make that impossible with this
+	 * API to help direct people to a more efficient usage pattern.
 	 */
 
 	@Override
