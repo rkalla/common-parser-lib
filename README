@@ -4,6 +4,52 @@ http://www.thebuzzmedia.com/software/common-parser-lib-common-parser-java-utilit
 
 Changelog
 ---------
+3.0
+	* Refactored library under base "parser" package to keep integration with
+	future Buzz Media "common" libraries cleaner.
+	
+	* Decoupled source type, input type, delimiter type and Token value types
+	all from each other. Allows for much more flexible API definitions.
+	
+	* Generified types were renamed to follow the naming scheme:
+	  <IT>: input-type, the type of the input that is processed by the parser.
+	  <ST>: source-type, type of the "source" that a Token gets its value from.
+	  <TT>: token-type, if needed, the type returned by IToken.getType()
+	  <VT>: value-type, the return type of IToken.getValue()
+	  <DT>: delimiter-type, the type of the delims used by IDelimitedTokenizer.
+	  <ET>: event-type, the type of the event pull parser's return.
+	
+	* AbstractParser.refillBuffer was refactored and generalized so code is no 
+	longer duplicated into different base parser implementations. 
+	
+	* AbstractParser.createBuffer hook was added to simplify parser initialized
+	in subclasses.
+	
+	* AbstractParser.parseToken was added as the universal logic-loop used to
+	parse the next token from the given bIndex/bEndIndex range of chars in the
+	buffer. This method also handles refilling and re-trying the parse operation
+	on first-failure before automatically stopping the parser and returning
+	null. 
+	
+	This logic is universal and doesn't need to be duplicated in any other sub
+	classes; the only thing subclasses need is the actual scanning/marking logic
+	for the types of tokens they parse.
+	
+	* Added AbstractReusableToken to make creating/using reusable tokens simpler.
+	
+	* Moved ByteArrayToken and CharArrayToken into their respective ITokenizer
+	implementations. These are not general-use tokens except for these specific
+	ITokenizer implementation, so it made more sense to have them defined as
+	part of the tokenizer itself.
+	
+	* IContainerToken definition was fixed to extend IToken.
+	
+	* IContainerToken added the ability to dictate a bounds-growth mode based
+	on the child tokens added to it.
+	
+	* Javadoc added to all the core interfaces to help make understanding the API
+	(starting with core classes) easier.
+	
 2.0
 	* Added parser package containing the fundamentals of a callback-based parser.
 	

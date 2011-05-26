@@ -20,7 +20,6 @@ import java.io.Reader;
 import java.util.List;
 
 import com.thebuzzmedia.common.io.IInput;
-import com.thebuzzmedia.common.lexer.ITokenizer;
 
 /*
  * TODO: Because of the need for using a read-buffer, Scanners must be stateful
