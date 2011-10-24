@@ -22,10 +22,11 @@ limitations under the License.
 	<property name="dir.javadoc" value="${dir.dist}/${dir.docs}/javadoc" />
 	
 	<path id="classpath">
-		<pathelement path="${dir.lib}/tbm-common-lib-2.0.jar" />
+		<!-- TODO: UPGRADE THIS LIB -->
+		<pathelement path="${dir.lib}/tbm-common-lib-2.?.jar" />
 	</path>
 	
-	<property name="version.major" value="2" />
+	<property name="version.major" value="3" />
 	<property name="version.minor" value="0" />
 
 	<property name="name.file" value="tbm-common-parser-lib" />

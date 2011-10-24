@@ -150,6 +150,9 @@ public abstract class AbstractParser<IT, TT, VT, ST> implements
 		try {
 			// Initial buffer fill and setup of indices/lengths.
 			refillBuffer();
+
+			// Buffer fill succeeded, set ready state.
+			this.stopped = false;
 		} catch (IOException e) {
 			throw new ParseException(
 					Type.IO,
@@ -157,9 +160,6 @@ public abstract class AbstractParser<IT, TT, VT, ST> implements
 					"An exception occurred while attempting the initial buffer fill for this parser.",
 					e);
 		}
-
-		// Buffer fill succeeded, set ready state.
-		this.stopped = false;
 	}
 
 	public boolean isReusingToken() {
@@ -230,7 +230,7 @@ public abstract class AbstractParser<IT, TT, VT, ST> implements
 		bIndex = 0;
 
 		// Fill remainder of buffer beginning after the kept data (if any).
-		bLength = input.read(buffer, (keepLength < 0 ? 0 : keepLength));
+		bLength = input.read(buffer, (keepLength == 0 ? 0 : keepLength));
 
 		// Add our keepLength to the buffer length if we kept anything
 		if (keepLength > 0)
@@ -282,9 +282,13 @@ public abstract class AbstractParser<IT, TT, VT, ST> implements
 					stop();
 			}
 
-			// Update the buffer index position if we parsed a token.
+			/*
+			 * Update the buffer index position if we parsed a token. +1 is
+			 * added manually to account for the delimiter that was hit but
+			 * isn't part of the token itself.
+			 */
 			if (token != null)
-				bIndex += token.getLength();
+				bIndex += token.getLength() + 1;
 		}
 
 		// Return the parsed token to the caller or null if we got nothing.

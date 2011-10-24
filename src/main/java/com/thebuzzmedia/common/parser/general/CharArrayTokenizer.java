@@ -106,10 +106,11 @@ public class CharArrayTokenizer extends
 				&& teIndex != ArrayUtils.INVALID_INDEX) {
 			// Check if we are reusing a token or creating a new one.
 			if (reuseToken) {
-				reusableToken.setValue(buffer, teIndex, (teIndex - tsIndex));
+				reusableToken
+						.setValue(buffer, tsIndex, (teIndex - tsIndex));
 				token = reusableToken;
 			} else
-				token = new ReusableCharArrayToken(buffer, teIndex,
+				token = new ReusableCharArrayToken(buffer, tsIndex,
 						(teIndex - tsIndex));
 		}
 

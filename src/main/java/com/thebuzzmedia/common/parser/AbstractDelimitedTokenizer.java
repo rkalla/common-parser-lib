@@ -42,7 +42,7 @@ public abstract class AbstractDelimitedTokenizer<IT, DT, TT, VT, ST> extends
 
 	@Override
 	public final void setInput(IInput<IT, ST> input)
-			throws IllegalArgumentException {
+			throws IllegalArgumentException, UnsupportedOperationException {
 		throw new UnsupportedOperationException(
 				"setInput(IInput) is not supported. Please use setInput(IInput, <DT> delimiters, DelimitedMode mode) instead.");
 	}
