@@ -1,6 +1,4 @@
 The Buzz Media common-parser-lib
-http://www.thebuzzmedia.com/software/common-parser-lib-common-parser-java-utility-library/
-
 
 Changelog
 ---------
@@ -144,15 +142,12 @@ implementors.
 Runtime Requirements
 --------------------
 1.	The Buzz Media common-lib (tbm-common-lib-<VER>.jar)
-	http://www.thebuzzmedia.com/software/common-lib-common-java-utility-library/
 
 
 History
 -------
-While developing the CloudFront Log Parser (http://www.thebuzzmedia.com/software/cloudfront-log-parser/),
-High Performance XML Parser (http://www.thebuzzmedia.com/software/high-performance-java-xml-parser-hpjxp/)
-and Redis Client Driver (http://www.thebuzzmedia.com/software/redis-java-client-db-driver/)
-I began to see a lot of duplication in parser/scanner/lexer logic emerge.
+While developing the CloudFront Log Parser,
+High Performance XML Parser and Redis Client Driver I began to see a lot of duplication in parser/scanner/lexer logic emerge.
 
 It took about a week to normalize all the use-cases into what looked like 3 
 different approaches to parsing: Scanning, tokenizing and parsing to a callback.
@@ -168,9 +163,3 @@ My goals for this project were not so much base implementations as they were:
 
 So I set out to define this library providing a clean API that can be easily
 extended to make custom parser implementations quickly.
-
-
-Contact
--------
-If you have questions, comments or bug reports for this software please contact
-us at: software@thebuzzmedia.com
